@@ -1,5 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, {
+  useMemo,
+  useState,
+} from "react";
+
 import emailjs from "@emailjs/browser";
+
 import {
   ArrowRight,
   Building2,
@@ -20,45 +25,68 @@ import {
   Smartphone,
   User,
 } from "lucide-react";
+
 import { QRCodeCanvas } from "qrcode.react";
-import { CONFIG, formatINR } from "../data/config";
+
+import {
+  CONFIG,
+  formatINR,
+} from "../data/config";
+
 import { TrustNotice } from "./ui";
+
+import {
+  useLanguage,
+} from "../context/language-context";
 
 const DONOR_DETAILS_THRESHOLD = 2000;
 
 export default function DonationExperience() {
-  const [donationType, setDonationType] = useState("money");
+  const { language, t } =
+    useLanguage();
+
+  const [donationType, setDonationType] =
+    useState("money");
 
   const [amount, setAmount] = useState(
     CONFIG.suggestedAmounts[1] || 1001
   );
 
-  const [custom, setCustom] = useState("");
+  const [custom, setCustom] =
+    useState("");
 
-  const [paymentMethod, setPaymentMethod] = useState("upi");
+  const [paymentMethod, setPaymentMethod] =
+    useState("upi");
 
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] =
+    useState(false);
 
-  const [showMaterialSummary, setShowMaterialSummary] =
-    useState(true);
+  const [
+    showMaterialSummary,
+    setShowMaterialSummary,
+  ] = useState(true);
 
-  const [donor, setDonor] = useState({
-    name: "",
-    email: "",
-    phone: "",
-  });
+  const [donor, setDonor] =
+    useState({
+      name: "",
+      email: "",
+      phone: "",
+    });
 
-  const [emailStatus, setEmailStatus] = useState("idle");
+  const [emailStatus, setEmailStatus] =
+    useState("idle");
 
-  const [materialQuantities, setMaterialQuantities] = useState(
-    () =>
-      (CONFIG.constructionMaterials || []).reduce(
-        (acc, material) => {
-          acc[material.id] = 0;
-          return acc;
-        },
-        {}
-      )
+  const [
+    materialQuantities,
+    setMaterialQuantities,
+  ] = useState(() =>
+    (CONFIG.constructionMaterials || []).reduce(
+      (acc, material) => {
+        acc[material.id] = 0;
+        return acc;
+      },
+      {}
+    )
   );
 
   // ---------------------------------------------
@@ -78,23 +106,25 @@ export default function DonationExperience() {
   // ---------------------------------------------
 
   const materialTotal = useMemo(() => {
-    return (CONFIG.constructionMaterials || []).reduce(
-      (total, material) => {
-        const quantity = Number(
-          materialQuantities[material.id] || 0
-        );
+    return (
+      CONFIG.constructionMaterials || []
+    ).reduce((total, material) => {
+      const quantity = Number(
+        materialQuantities[
+          material.id
+        ] || 0
+      );
 
-        return (
-          total +
-          quantity * Number(material.price || 0)
-        );
-      },
-      0
-    );
+      return (
+        total +
+        quantity *
+          Number(material.price || 0)
+      );
+    }, 0);
   }, [materialQuantities]);
 
   // ---------------------------------------------
-  // FINAL DONATION TOTAL
+  // FINAL AMOUNT
   // ---------------------------------------------
 
   const finalAmount =
@@ -102,9 +132,10 @@ export default function DonationExperience() {
       ? moneyAmount
       : materialTotal;
 
-  // Applies to BOTH money + material donations
+  // Applies to money AND materials.
   const requiresDonorDetails =
-    finalAmount > DONOR_DETAILS_THRESHOLD;
+    finalAmount >
+    DONOR_DETAILS_THRESHOLD;
 
   // ---------------------------------------------
   // MOBILE
@@ -117,39 +148,67 @@ export default function DonationExperience() {
     );
 
   // ---------------------------------------------
-  // UPI PAYMENT URL
+  // UPI URL
   // ---------------------------------------------
 
   const upiUrl = useMemo(() => {
-    const safeAmount = Number(finalAmount) || 0;
+    const safeAmount =
+      Number(finalAmount) || 0;
 
     return [
       "upi://pay",
-      `pa=${encodeURIComponent(CONFIG.upiId)}`,
-      `pn=${encodeURIComponent(CONFIG.accountName)}`,
+
+      `pa=${encodeURIComponent(
+        CONFIG.upiId
+      )}`,
+
+      `pn=${encodeURIComponent(
+        CONFIG.accountName
+      )}`,
+
       `am=${encodeURIComponent(
         safeAmount.toFixed(2)
       )}`,
+
       "cu=INR",
+
       `tn=${encodeURIComponent(
         donationType === "money"
           ? "Temple Seva Donation"
           : "Temple Construction Material Seva"
       )}`,
     ].join("&");
-  }, [finalAmount, donationType]);
+  }, [
+    finalAmount,
+    donationType,
+  ]);
 
   // ---------------------------------------------
   // STRIPE
   // ---------------------------------------------
 
   const stripe =
-    CONFIG.stripePaymentLinks?.[finalAmount] ||
+    CONFIG.stripePaymentLinks?.[
+      finalAmount
+    ] ||
     CONFIG.stripePaymentLinks?.default;
 
   const canStripe = Boolean(
-    stripe && !stripe.includes("REPLACE_WITH_")
+    stripe &&
+      !stripe.includes(
+        "REPLACE_WITH_"
+      )
   );
+
+  // ---------------------------------------------
+  // SELECT MONEY AMOUNT
+  // ---------------------------------------------
+
+  const selectAmount = (value) => {
+    setAmount(value);
+    setCustom("");
+    setEmailStatus("idle");
+  };
 
   // ---------------------------------------------
   // MATERIAL QUANTITY
@@ -159,13 +218,18 @@ export default function DonationExperience() {
     materialId,
     change
   ) => {
-    setMaterialQuantities((current) => ({
-      ...current,
-      [materialId]: Math.max(
-        0,
-        Number(current[materialId] || 0) + change
-      ),
-    }));
+    setMaterialQuantities(
+      (current) => ({
+        ...current,
+
+        [materialId]: Math.max(
+          0,
+          Number(
+            current[materialId] || 0
+          ) + change
+        ),
+      })
+    );
 
     setEmailStatus("idle");
   };
@@ -176,24 +240,21 @@ export default function DonationExperience() {
   ) => {
     const quantity = Number(value);
 
-    setMaterialQuantities((current) => ({
-      ...current,
-      [materialId]: Math.max(
-        0,
-        Number.isFinite(quantity) ? quantity : 0
-      ),
-    }));
+    setMaterialQuantities(
+      (current) => ({
+        ...current,
 
-    setEmailStatus("idle");
-  };
+        [materialId]: Math.max(
+          0,
+          Number.isFinite(
+            quantity
+          )
+            ? quantity
+            : 0
+        ),
+      })
+    );
 
-  // ---------------------------------------------
-  // MONEY
-  // ---------------------------------------------
-
-  const selectAmount = (value) => {
-    setAmount(value);
-    setCustom("");
     setEmailStatus("idle");
   };
 
@@ -201,7 +262,10 @@ export default function DonationExperience() {
   // DONOR DETAILS
   // ---------------------------------------------
 
-  const updateDonor = (field, value) => {
+  const updateDonor = (
+    field,
+    value
+  ) => {
     setDonor((current) => ({
       ...current,
       [field]: value,
@@ -214,7 +278,7 @@ export default function DonationExperience() {
   // COPY UPI
   // ---------------------------------------------
 
-  const copy = async () => {
+  const copyUpi = async () => {
     try {
       await navigator.clipboard?.writeText(
         CONFIG.upiId
@@ -240,142 +304,176 @@ export default function DonationExperience() {
     }
 
     const selected = (
-      CONFIG.constructionMaterials || []
+      CONFIG.constructionMaterials ||
+      []
     )
       .filter(
         (material) =>
           Number(
-            materialQuantities[material.id] || 0
+            materialQuantities[
+              material.id
+            ] || 0
           ) > 0
       )
       .map((material) => {
-        const quantity = Number(
-          materialQuantities[material.id] || 0
-        );
+        const quantity =
+          Number(
+            materialQuantities[
+              material.id
+            ] || 0
+          );
 
         const total =
-          quantity * Number(material.price || 0);
+          quantity *
+          Number(material.price || 0);
 
-        return `${quantity} x ${material.name} = ${formatINR(
-          total
-        )}`;
+        return `${quantity} x ${
+          material.name[language]
+        } = ${formatINR(total)}`;
       });
 
-    return selected.length > 0
+    return selected.length
       ? selected.join("\n")
       : "Construction material seva";
   }, [
     donationType,
     materialQuantities,
+    language,
   ]);
 
   // ---------------------------------------------
-  // VALIDATE DONOR DETAILS
+  // VALIDATE DONOR
   // ---------------------------------------------
 
-  const validateDonorDetails = () => {
-    if (!requiresDonorDetails) {
+  const validateDonorDetails =
+    () => {
+      if (!requiresDonorDetails) {
+        return true;
+      }
+
+      if (!donor.name.trim()) {
+        setEmailStatus(
+          "name-error"
+        );
+        return false;
+      }
+
+      if (!donor.email.trim()) {
+        setEmailStatus(
+          "email-error"
+        );
+        return false;
+      }
+
+      const emailValid =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+          donor.email
+        );
+
+      if (!emailValid) {
+        setEmailStatus(
+          "email-error"
+        );
+        return false;
+      }
+
       return true;
-    }
-
-    if (!donor.name.trim()) {
-      setEmailStatus("name-error");
-      return false;
-    }
-
-    if (!donor.email.trim()) {
-      setEmailStatus("email-error");
-      return false;
-    }
-
-    const emailValid =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-        donor.email
-      );
-
-    if (!emailValid) {
-      setEmailStatus("email-error");
-      return false;
-    }
-
-    return true;
-  };
+    };
 
   // ---------------------------------------------
-  // SEND EMAIL
+  // SEND DONATION EMAIL
   // ---------------------------------------------
 
-  const sendDonationEmail = async () => {
-    if (!requiresDonorDetails) {
-      return true;
-    }
+  const sendDonationEmail =
+    async () => {
+      if (!requiresDonorDetails) {
+        return true;
+      }
 
-    if (!CONFIG.email?.enabled) {
-      return true;
-    }
+      if (!CONFIG.email?.enabled) {
+        return true;
+      }
 
-    if (!validateDonorDetails()) {
-      return false;
-    }
+      if (!validateDonorDetails()) {
+        return false;
+      }
 
-    setEmailStatus("sending");
+      setEmailStatus("sending");
 
-    try {
-      await emailjs.send(
-        CONFIG.email.serviceId,
-        CONFIG.email.templateId,
-        {
-          to_name: donor.name,
-          to_email: donor.email,
+      try {
+        await emailjs.send(
+          CONFIG.email.serviceId,
+          CONFIG.email.templateId,
+          {
+            to_name:
+              donor.name,
 
-          donor_name: donor.name,
-          donor_email: donor.email,
-          donor_phone:
-            donor.phone || "Not provided",
+            to_email:
+              donor.email,
 
-          temple_name: CONFIG.templeName,
-          temple_location: CONFIG.location,
+            donor_name:
+              donor.name,
 
-          donation_type:
-            donationType === "money"
-              ? "Money Donation"
-              : "Temple Construction Material Seva",
+            donor_email:
+              donor.email,
 
-          donation_amount:
-            formatINR(finalAmount),
+            donor_phone:
+              donor.phone ||
+              "Not provided",
 
-          payment_method:
-            paymentMethod === "upi"
-              ? "UPI App"
-              : paymentMethod === "qr"
-              ? "UPI QR Code"
-              : "Stripe",
+            temple_name:
+              CONFIG.templeName,
 
-          material_summary:
-            materialSummary,
-        },
-        {
-          publicKey: CONFIG.email.publicKey,
-        }
-      );
+            temple_location:
+              CONFIG.location,
 
-      setEmailStatus("sent");
+            donation_type:
+              donationType ===
+              "money"
+                ? "Money Donation"
+                : "Temple Construction Material Seva",
 
-      return true;
-    } catch (error) {
-      console.error(
-        "Donation email failed:",
-        error
-      );
+            donation_amount:
+              formatINR(
+                finalAmount
+              ),
 
-      setEmailStatus("error");
+            payment_method:
+              paymentMethod ===
+              "upi"
+                ? "UPI App"
+                : paymentMethod ===
+                  "qr"
+                ? "UPI QR Code"
+                : "Stripe",
 
-      return false;
-    }
-  };
+            material_summary:
+              materialSummary,
+          },
+          {
+            publicKey:
+              CONFIG.email
+                .publicKey,
+          }
+        );
+
+        setEmailStatus("sent");
+
+        return true;
+      } catch (error) {
+        console.error(
+          "Donation email failed:",
+          error
+        );
+
+        setEmailStatus("error");
+
+        return false;
+      }
+    };
 
   // ---------------------------------------------
-  // OPEN UPI APP
+  // OPEN UPI
   // ---------------------------------------------
 
   const openUpiApp = async () => {
@@ -392,7 +490,8 @@ export default function DonationExperience() {
       }
     }
 
-    window.location.href = upiUrl;
+    window.location.href =
+      upiUrl;
   };
 
   // ---------------------------------------------
@@ -406,8 +505,9 @@ export default function DonationExperience() {
 
     if (!canStripe) {
       alert(
-        "Stripe payment link is not configured for this amount."
+        t.donate.stripeNotConfigured
       );
+
       return;
     }
 
@@ -434,23 +534,26 @@ export default function DonationExperience() {
   const paymentOptions = [
     {
       id: "upi",
-      title: "UPI App",
+      title: t.donate.upi,
       subtitle:
-        "Google Pay, PhonePe, Paytm",
+        t.donate
+          .upiDescription,
       icon: Smartphone,
     },
     {
       id: "qr",
-      title: "Scan QR",
+      title: t.donate.qr,
       subtitle:
-        "Scan using any UPI app",
+        t.donate
+          .qrDescription,
       icon: QrCode,
     },
     {
       id: "stripe",
-      title: "Card / Stripe",
+      title: t.donate.stripe,
       subtitle:
-        "Secure hosted checkout",
+        t.donate
+          .stripeDescription,
       icon: CreditCard,
     },
   ];
@@ -466,47 +569,76 @@ export default function DonationExperience() {
           <button
             type="button"
             onClick={() => {
-              setDonationType("money");
-              setPaymentMethod("upi");
-              setEmailStatus("idle");
+              setDonationType(
+                "money"
+              );
+
+              setPaymentMethod(
+                "upi"
+              );
+
+              setEmailStatus(
+                "idle"
+              );
             }}
-            className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition ${
-              donationType === "money"
+            className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold ${
+              donationType ===
+              "money"
                 ? "bg-white text-[#8f2d0c] shadow-sm"
-                : "text-[#725c4a] hover:text-[#8f2d0c]"
+                : "text-[#725c4a]"
             }`}
           >
-            <IndianRupee size={17} />
-            Donate Money
+            <IndianRupee
+              size={17}
+            />
+
+            {t.donate.donateMoney}
           </button>
 
           <button
             type="button"
             onClick={() => {
-              setDonationType("materials");
-              setPaymentMethod("upi");
-              setEmailStatus("idle");
+              setDonationType(
+                "materials"
+              );
+
+              setPaymentMethod(
+                "upi"
+              );
+
+              setEmailStatus(
+                "idle"
+              );
             }}
-            className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition ${
-              donationType === "materials"
+            className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold ${
+              donationType ===
+              "materials"
                 ? "bg-white text-[#8f2d0c] shadow-sm"
-                : "text-[#725c4a] hover:text-[#8f2d0c]"
+                : "text-[#725c4a]"
             }`}
           >
-            <Building2 size={17} />
-            Sponsor Materials
+            <Building2
+              size={17}
+            />
+
+            {t.donate
+              .sponsorMaterials}
           </button>
         </div>
       </div>
 
       {/* =====================================================
-          MONEY DONATION
+          MONEY
       ====================================================== */}
 
-      {donationType === "money" && (
+      {donationType ===
+        "money" && (
         <div className="mt-7">
           <label className="block text-sm font-bold text-[#35291f]">
-            Choose donation amount
+            {
+              t.donate
+                .chooseAmount
+            }
           </label>
 
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -516,7 +648,9 @@ export default function DonationExperience() {
                   key={value}
                   type="button"
                   onClick={() =>
-                    selectAmount(value)
+                    selectAmount(
+                      value
+                    )
                   }
                   className={`cursor-pointer rounded-2xl border px-4 py-3 text-sm font-bold transition ${
                     !custom &&
@@ -525,7 +659,9 @@ export default function DonationExperience() {
                       : "border-[#e6d8c7] bg-white text-[#5f5147] hover:border-[#b9743e]"
                   }`}
                 >
-                  {formatINR(value)}
+                  {formatINR(
+                    value
+                  )}
                 </button>
               )
             )}
@@ -533,7 +669,10 @@ export default function DonationExperience() {
 
           <div className="mt-5">
             <label className="text-xs font-bold uppercase tracking-[0.12em] text-[#806c5c]">
-              Or enter a custom amount
+              {
+                t.donate
+                  .customAmount
+              }
             </label>
 
             <div className="relative mt-2">
@@ -546,7 +685,9 @@ export default function DonationExperience() {
                 type="text"
                 inputMode="numeric"
                 value={custom}
-                onChange={(event) =>
+                onChange={(
+                  event
+                ) =>
                   setCustom(
                     event.target.value.replace(
                       /[^0-9]/g,
@@ -554,8 +695,11 @@ export default function DonationExperience() {
                     )
                   )
                 }
-                placeholder="Enter amount"
-                className="w-full rounded-2xl border border-[#ddcfbd] bg-[#fffdf9] py-3.5 pl-11 pr-4 outline-none transition focus:border-[#a45416] focus:ring-2 focus:ring-[#a45416]/10"
+                placeholder={
+                  t.donate
+                    .enterAmount
+                }
+                className="w-full rounded-2xl border border-[#ddcfbd] bg-[#fffdf9] py-3.5 pl-11 pr-4 outline-none focus:border-[#a45416]"
               />
             </div>
           </div>
@@ -566,7 +710,8 @@ export default function DonationExperience() {
           MATERIALS
       ====================================================== */}
 
-      {donationType === "materials" && (
+      {donationType ===
+        "materials" && (
         <div className="mt-7">
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-[#fff1da] p-2.5">
@@ -575,38 +720,49 @@ export default function DonationExperience() {
 
             <div>
               <label className="block text-sm font-bold text-[#35291f]">
-                Sponsor temple construction materials
+                {
+                  t.donate
+                    .sponsorTitle
+                }
               </label>
 
               <p className="mt-1 text-sm leading-6 text-[#806c5c]">
-                Select one or more materials and the
-                quantity you would like to sponsor.
+                {
+                  t.donate
+                    .sponsorDescription
+                }
               </p>
             </div>
           </div>
 
-          {/* MATERIAL GRID */}
-
           <div className="mt-6 grid gap-5 md:grid-cols-2">
-            {(CONFIG.constructionMaterials || []).map(
+            {(
+              CONFIG.constructionMaterials ||
+              []
+            ).map(
               (material) => {
-                const quantity = Number(
-                  materialQuantities[
-                    material.id
-                  ] || 0
-                );
+                const quantity =
+                  Number(
+                    materialQuantities[
+                      material.id
+                    ] || 0
+                  );
 
                 const itemTotal =
                   quantity *
                   Number(
-                    material.price || 0
+                    material.price ||
+                      0
                   );
 
                 return (
                   <div
-                    key={material.id}
+                    key={
+                      material.id
+                    }
                     className={`overflow-hidden rounded-3xl border bg-white transition-all duration-300 ${
-                      quantity > 0
+                      quantity >
+                      0
                         ? "border-[#b9743e] shadow-lg"
                         : "border-[#eadfcf] hover:-translate-y-1 hover:border-[#d8b18d] hover:shadow-lg"
                     }`}
@@ -619,7 +775,11 @@ export default function DonationExperience() {
                           material.image ||
                           "/images/materials/material-placeholder.jpg"
                         }
-                        alt={material.name}
+                        alt={
+                          material.name[
+                            language
+                          ]
+                        }
                         className="h-full w-full object-cover transition duration-500 hover:scale-105"
                         loading="lazy"
                         onError={(
@@ -630,23 +790,29 @@ export default function DonationExperience() {
                         }}
                       />
 
-                      {/* IMAGE OVERLAY */}
-
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-5 pb-4 pt-14">
                         <h3 className="text-xl font-bold text-white">
-                          {material.name}
+                          {
+                            material
+                              .name[
+                              language
+                            ]
+                          }
                         </h3>
                       </div>
                     </div>
 
-                    {/* CARD CONTENT */}
+                    {/* CONTENT */}
 
                     <div className="p-5">
                       <p className="min-h-[48px] text-sm leading-6 text-[#806c5c]">
-                        {material.description}
+                        {
+                          material
+                            .description[
+                            language
+                          ]
+                        }
                       </p>
-
-                      {/* PRICE */}
 
                       <div className="mt-3">
                         <span className="text-xl font-bold text-[#9c3b0d]">
@@ -656,7 +822,14 @@ export default function DonationExperience() {
                         </span>
 
                         <span className="ml-1 text-sm text-[#806c5c]">
-                          / {material.unit}
+                          /
+                          {" "}
+                          {
+                            material
+                              .unit[
+                              language
+                            ]
+                          }
                         </span>
                       </div>
 
@@ -673,17 +846,22 @@ export default function DonationExperience() {
                               )
                             }
                             disabled={
-                              quantity === 0
+                              quantity ===
+                              0
                             }
-                            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#dfd0be] bg-white transition hover:bg-[#f7efe5] disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#dfd0be] bg-white hover:bg-[#f7efe5] disabled:cursor-not-allowed disabled:opacity-40"
                           >
-                            <Minus size={15} />
+                            <Minus
+                              size={15}
+                            />
                           </button>
 
                           <input
                             type="text"
                             inputMode="numeric"
-                            value={quantity}
+                            value={
+                              quantity
+                            }
                             onChange={(
                               event
                             ) =>
@@ -695,7 +873,7 @@ export default function DonationExperience() {
                                 )
                               )
                             }
-                            className="h-10 w-16 rounded-xl border border-[#dfd0be] bg-white text-center text-sm font-bold text-[#35291f] outline-none focus:border-[#a45416] focus:ring-2 focus:ring-[#a45416]/10"
+                            className="h-10 w-16 rounded-xl border border-[#dfd0be] bg-white text-center text-sm font-bold text-[#35291f] outline-none focus:border-[#a45416]"
                           />
 
                           <button
@@ -706,17 +884,20 @@ export default function DonationExperience() {
                                 1
                               )
                             }
-                            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#9c3b0d] text-white transition hover:bg-[#7e300d]"
+                            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#9c3b0d] text-white hover:bg-[#7e300d]"
                           >
-                            <Plus size={15} />
+                            <Plus
+                              size={15}
+                            />
                           </button>
                         </div>
 
-                        {/* ITEM TOTAL */}
-
                         <div className="text-right">
                           <div className="text-xs text-[#8e7b69]">
-                            Item total
+                            {
+                              t.donate
+                                .itemTotal
+                            }
                           </div>
 
                           <div className="text-lg font-bold text-[#35291f]">
@@ -735,20 +916,27 @@ export default function DonationExperience() {
 
           {/* MATERIAL SUMMARY */}
 
-          {materialTotal > 0 && (
+          {materialTotal >
+            0 && (
             <div className="mt-6 overflow-hidden rounded-3xl border border-[#eadfcf] bg-[#fffaf2]">
               <button
                 type="button"
                 onClick={() =>
                   setShowMaterialSummary(
-                    (current) => !current
+                    (
+                      current
+                    ) =>
+                      !current
                   )
                 }
                 className="flex w-full cursor-pointer items-center justify-between px-5 py-4 text-left"
               >
                 <div>
                   <div className="text-xs font-bold uppercase tracking-[0.12em] text-[#a06a35]">
-                    Your construction seva
+                    {
+                      t.donate
+                        .constructionTotal
+                    }
                   </div>
 
                   <div className="mt-1 text-xl font-bold text-[#35291f]">
@@ -759,9 +947,13 @@ export default function DonationExperience() {
                 </div>
 
                 {showMaterialSummary ? (
-                  <ChevronUp size={18} />
+                  <ChevronUp
+                    size={18}
+                  />
                 ) : (
-                  <ChevronDown size={18} />
+                  <ChevronDown
+                    size={18}
+                  />
                 )}
               </button>
 
@@ -773,69 +965,79 @@ export default function DonationExperience() {
                       []
                     )
                       .filter(
-                        (material) =>
+                        (
+                          material
+                        ) =>
                           Number(
                             materialQuantities[
                               material.id
                             ] || 0
                           ) > 0
                       )
-                      .map((material) => {
-                        const quantity =
-                          Number(
-                            materialQuantities[
-                              material.id
-                            ] || 0
+                      .map(
+                        (
+                          material
+                        ) => {
+                          const quantity =
+                            Number(
+                              materialQuantities[
+                                material.id
+                              ] || 0
+                            );
+
+                          return (
+                            <div
+                              key={
+                                material.id
+                              }
+                              className="flex items-center justify-between text-sm"
+                            >
+                              <span className="text-[#705e50]">
+                                {
+                                  quantity
+                                }{" "}
+                                ×{" "}
+                                {
+                                  material
+                                    .name[
+                                    language
+                                  ]
+                                }
+                              </span>
+
+                              <span className="font-bold text-[#35291f]">
+                                {formatINR(
+                                  quantity *
+                                    Number(
+                                      material.price ||
+                                        0
+                                    )
+                                )}
+                              </span>
+                            </div>
                           );
-
-                        return (
-                          <div
-                            key={material.id}
-                            className="flex items-center justify-between text-sm"
-                          >
-                            <span className="text-[#705e50]">
-                              {quantity} ×{" "}
-                              {material.name}
-                            </span>
-
-                            <span className="font-bold text-[#35291f]">
-                              {formatINR(
-                                quantity *
-                                  Number(
-                                    material.price ||
-                                      0
-                                  )
-                              )}
-                            </span>
-                          </div>
-                        );
-                      })}
+                        }
+                      )}
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* THRESHOLD NOTICE */}
+          {/* MATERIAL THRESHOLD */}
 
-          {materialTotal > DONOR_DETAILS_THRESHOLD && (
+          {materialTotal >
+            DONOR_DETAILS_THRESHOLD && (
             <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
               <div className="flex gap-3">
                 <Mail className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
 
-                <div>
-                  <p className="text-sm font-bold text-amber-900">
-                    Donor details required
-                  </p>
-
-                  <p className="mt-1 text-xs leading-5 text-amber-800">
-                    Your material sponsorship is above{" "}
-                    {formatINR(
-                      DONOR_DETAILS_THRESHOLD
-                    )}. Please provide your name and email below so
-                    we can send your acknowledgement.
-                  </p>
-                </div>
+                <p className="text-sm leading-6 text-amber-900">
+                  {
+                    t.donate
+                      .donorThresholdMaterial
+                  }
+                </p>
               </div>
             </div>
           )}
@@ -850,9 +1052,12 @@ export default function DonationExperience() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#f4c28b]">
-              {donationType === "money"
-                ? "Your donation"
-                : "Material seva total"}
+              {donationType ===
+              "money"
+                ? t.donate
+                    .yourDonation
+                : t.donate
+                    .materialSevaTotal}
             </div>
 
             <div className="mt-1 font-serif text-3xl font-semibold">
@@ -863,10 +1068,10 @@ export default function DonationExperience() {
 
             {requiresDonorDetails && (
               <div className="mt-3 inline-flex rounded-full bg-[#7e300d] px-3 py-1 text-xs font-bold">
-                Donor details required above{" "}
-                {formatINR(
-                  DONOR_DETAILS_THRESHOLD
-                )}
+                {
+                  t.donate
+                    .donorThreshold
+                }
               </div>
             )}
           </div>
@@ -876,7 +1081,8 @@ export default function DonationExperience() {
               size={17}
               className="fill-current text-[#f1a05b]"
             />
-            Every seva supports the temple.
+
+            {t.donate.everySeva}
           </div>
         </div>
       </div>
@@ -889,20 +1095,18 @@ export default function DonationExperience() {
         <div className="mt-7 rounded-[1.6rem] border border-[#eadfcf] bg-[#fffaf2] p-6">
           <div className="mb-5">
             <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#a06a35]">
-              Donor details
+              {t.donate.donorDetails}
             </div>
 
             <h3 className="mt-2 font-serif text-2xl font-semibold text-[#35291f]">
-              Thank-you email details
+              {t.donate.donorDetails}
             </h3>
 
             <p className="mt-2 text-sm leading-6 text-[#705e50]">
-              Because this contribution is above{" "}
-              {formatINR(
-                DONOR_DETAILS_THRESHOLD
-              )}
-              , please provide your details so we can
-              send your donation acknowledgement.
+              {
+                t.donate
+                  .donorDetailsDescription
+              }
             </p>
           </div>
 
@@ -912,7 +1116,7 @@ export default function DonationExperience() {
             <div>
               <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-[#806c5c]">
                 <User size={14} />
-                Full Name *
+                {t.donate.fullName} *
               </label>
 
               <input
@@ -924,14 +1128,19 @@ export default function DonationExperience() {
                     event.target.value
                   )
                 }
-                placeholder="Your full name"
+                placeholder={
+                  t.donate.fullName
+                }
                 className="mt-2 w-full rounded-xl border border-[#ddcfbd] bg-white px-4 py-3 outline-none focus:border-[#a45416]"
               />
 
               {emailStatus ===
                 "name-error" && (
                 <p className="mt-1 text-xs font-semibold text-red-600">
-                  Please enter your name.
+                  {
+                    t.donate
+                      .nameRequired
+                  }
                 </p>
               )}
             </div>
@@ -941,7 +1150,7 @@ export default function DonationExperience() {
             <div>
               <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-[#806c5c]">
                 <Mail size={14} />
-                Email *
+                {t.donate.email} *
               </label>
 
               <input
@@ -960,7 +1169,10 @@ export default function DonationExperience() {
               {emailStatus ===
                 "email-error" && (
                 <p className="mt-1 text-xs font-semibold text-red-600">
-                  Please enter a valid email address.
+                  {
+                    t.donate
+                      .emailRequired
+                  }
                 </p>
               )}
             </div>
@@ -970,7 +1182,7 @@ export default function DonationExperience() {
             <div>
               <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-[#806c5c]">
                 <Phone size={14} />
-                Phone
+                {t.donate.phone}
               </label>
 
               <input
@@ -991,12 +1203,12 @@ export default function DonationExperience() {
       )}
 
       {/* =====================================================
-          PAYMENT METHOD
+          PAYMENT METHODS
       ====================================================== */}
 
       <div className="mt-7">
         <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#a06a35]">
-          Choose payment method
+          {t.donate.paymentMethod}
         </div>
 
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
@@ -1030,16 +1242,22 @@ export default function DonationExperience() {
                           : "bg-[#f7efe5] text-[#725c4a]"
                       }`}
                     >
-                      <Icon size={18} />
+                      <Icon
+                        size={18}
+                      />
                     </div>
 
                     <div>
                       <div className="text-sm font-bold text-[#35291f]">
-                        {option.title}
+                        {
+                          option.title
+                        }
                       </div>
 
                       <div className="mt-0.5 text-xs text-[#806c5c]">
-                        {option.subtitle}
+                        {
+                          option.subtitle
+                        }
                       </div>
                     </div>
                   </div>
@@ -1061,26 +1279,27 @@ export default function DonationExperience() {
           "upi" && (
           <div>
             <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#a06a35]">
-              Direct UPI payment
+              {t.donate.directUpi}
             </div>
 
             <h3 className="mt-2 font-serif text-3xl font-semibold text-[#35291f]">
-              Pay{" "}
+              {t.donate.payViaUpi}{" "}
               {formatINR(
                 finalAmount || 0
-              )}{" "}
-              via UPI
+              )}
             </h3>
 
             <p className="mt-2 text-sm leading-7 text-[#705e50]">
               {isMobile
-                ? "Tap below to open your installed UPI app. The amount and temple UPI ID are pre-filled."
-                : "On desktop, scan the QR code using your phone. On mobile, the button can open your UPI app."}
+                ? t.donate
+                    .mobileUpi
+                : t.donate
+                    .desktopUpi}
             </p>
 
             <div className="mt-4 rounded-xl bg-white px-4 py-3">
               <div className="text-xs text-[#8c7b6a]">
-                Temple UPI ID
+                {t.donate.templeUpi}
               </div>
 
               <div className="mt-1 flex items-center justify-between gap-3">
@@ -1090,7 +1309,7 @@ export default function DonationExperience() {
 
                 <button
                   type="button"
-                  onClick={copy}
+                  onClick={copyUpi}
                   className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#dfd0be] px-2.5 py-2 text-xs font-bold hover:bg-[#f7efe5]"
                 >
                   {copied ? (
@@ -1099,12 +1318,14 @@ export default function DonationExperience() {
                         size={14}
                         className="text-green-600"
                       />
-                      Copied
+                      {t.buttons.copied}
                     </>
                   ) : (
                     <>
-                      <Copy size={14} />
-                      Copy
+                      <Copy
+                        size={14}
+                      />
+                      {t.buttons.copy}
                     </>
                   )}
                 </button>
@@ -1113,9 +1334,12 @@ export default function DonationExperience() {
 
             <button
               type="button"
-              onClick={openUpiApp}
+              onClick={
+                openUpiApp
+              }
               disabled={
-                finalAmount <= 0 ||
+                finalAmount <=
+                  0 ||
                 emailStatus ===
                   "sending"
               }
@@ -1123,8 +1347,10 @@ export default function DonationExperience() {
             >
               {emailStatus ===
               "sending"
-                ? "Preparing..."
-                : "Open UPI App"}
+                ? t.donate
+                    .preparing
+                : t.buttons
+                    .openUpi}
 
               <ExternalLink
                 size={15}
@@ -1134,26 +1360,32 @@ export default function DonationExperience() {
             {emailStatus ===
               "error" && (
               <p className="mt-3 text-sm font-semibold text-red-600">
-                We couldn't send the donor
-                email. Please check the
-                details above and try again.
+                {
+                  t.donate
+                    .emailFailed
+                }
               </p>
             )}
 
             {emailStatus ===
               "sent" && (
               <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green-700">
-                <Check size={15} />
-                Thank-you email sent to{" "}
+                <Check
+                  size={15}
+                />
+                {
+                  t.donate
+                    .emailSent
+                }{" "}
                 {donor.email}
               </p>
             )}
 
             <p className="mt-4 text-xs leading-5 text-[#806c5c]">
-              UPI app support depends on
-              the device and installed UPI
-              applications. On desktop,
-              use the QR option.
+              {
+                t.donate
+                  .openUpiHint
+              }
             </p>
           </div>
         )}
@@ -1164,7 +1396,7 @@ export default function DonationExperience() {
           "qr" && (
           <div>
             <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#a06a35]">
-              UPI QR payment
+              {t.donate.qr}
             </div>
 
             <div className="mt-5 grid gap-7 md:grid-cols-[auto_1fr] md:items-center">
@@ -1178,21 +1410,22 @@ export default function DonationExperience() {
 
               <div>
                 <h3 className="font-serif text-3xl font-semibold text-[#35291f]">
-                  Scan{" "}
+                  {t.donate.qr}{" "}
                   {formatINR(
                     finalAmount || 0
                   )}
                 </h3>
 
                 <p className="mt-2 text-sm leading-7 text-[#705e50]">
-                  Scan this QR code using
-                  Google Pay, PhonePe, Paytm,
-                  BHIM or another UPI app.
+                  {
+                    t.donate
+                      .qrDescriptionFull
+                  }
                 </p>
 
                 <div className="mt-4 rounded-xl bg-white px-4 py-3">
                   <div className="text-xs text-[#8c7b6a]">
-                    Temple UPI ID
+                    {t.donate.templeUpi}
                   </div>
 
                   <div className="mt-1 font-mono text-sm font-bold text-[#35291f]">
@@ -1214,21 +1447,31 @@ export default function DonationExperience() {
                   >
                     {emailStatus ===
                     "sending"
-                      ? "Sending..."
+                      ? t.donate
+                          .sending
                       : emailStatus ===
                         "sent"
-                      ? "Email Sent"
-                      : "Send Donation Details"}
+                      ? t.donate
+                          .emailSent
+                      : t.buttons
+                          .continue}
 
-                    <Mail size={15} />
+                    <Mail
+                      size={15}
+                    />
                   </button>
                 )}
 
                 {emailStatus ===
                   "sent" && (
                   <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green-700">
-                    <Check size={15} />
-                    Thank-you email sent to{" "}
+                    <Check
+                      size={15}
+                    />
+                    {
+                      t.donate
+                        .emailSent
+                    }{" "}
                     {donor.email}
                   </p>
                 )}
@@ -1243,21 +1486,21 @@ export default function DonationExperience() {
           "stripe" && (
           <div>
             <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#a06a35]">
-              Hosted card checkout
+              {t.donate.stripe}
             </div>
 
             <h3 className="mt-2 font-serif text-3xl font-semibold text-[#35291f]">
-              Pay{" "}
+              {t.donate.stripe}{" "}
               {formatINR(
                 finalAmount || 0
-              )}{" "}
-              with Stripe
+              )}
             </h3>
 
             <p className="mt-2 text-sm leading-7 text-[#705e50]">
-              Continue to Stripe-hosted
-              checkout for card and other
-              supported payment methods.
+              {
+                t.donate
+                  .stripeDescriptionFull
+              }
             </p>
 
             {canStripe ? (
@@ -1267,7 +1510,8 @@ export default function DonationExperience() {
                   openStripe
                 }
                 disabled={
-                  finalAmount <= 0 ||
+                  finalAmount <=
+                    0 ||
                   emailStatus ===
                     "sending"
                 }
@@ -1275,8 +1519,10 @@ export default function DonationExperience() {
               >
                 {emailStatus ===
                 "sending"
-                  ? "Preparing..."
-                  : "Continue to Stripe"}
+                  ? t.donate
+                      .preparing
+                  : t.buttons
+                      .continueStripe}
 
                 <ArrowRight
                   size={15}
@@ -1284,25 +1530,33 @@ export default function DonationExperience() {
               </button>
             ) : (
               <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                Stripe payment link is not
-                configured for this amount yet.
+                {
+                  t.donate
+                    .stripeNotConfigured
+                }
               </div>
             )}
 
             {emailStatus ===
               "error" && (
               <p className="mt-3 text-sm font-semibold text-red-600">
-                We couldn't send the donor
-                email. Please check the
-                donor details and try again.
+                {
+                  t.donate
+                    .emailFailed
+                }
               </p>
             )}
 
             {emailStatus ===
               "sent" && (
               <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green-700">
-                <Check size={15} />
-                Thank-you email sent to{" "}
+                <Check
+                  size={15}
+                />
+                {
+                  t.donate
+                    .emailSent
+                }{" "}
                 {donor.email}
               </p>
             )}
@@ -1310,9 +1564,7 @@ export default function DonationExperience() {
         )}
       </div>
 
-      {/* =====================================================
-          TRUST NOTICE
-      ====================================================== */}
+      {/* TRUST */}
 
       <div className="mt-5">
         <TrustNotice />

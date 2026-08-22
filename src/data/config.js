@@ -49,70 +49,166 @@ export const CONFIG = {
   // ------------------------------------------
 
   constructionMaterials: [
-  {
-    id: "brick",
-    name: "Bricks",
-    description: "Sponsor bricks for temple walls and construction.",
-    unit: "brick",
-    price: 8,
-    image: "/images/materials/bricks.jpg",
-  },
-  {
-    id: "cement",
-    name: "Cement",
-    description: "Sponsor cement bags for construction work.",
-    unit: "bag",
-    price: 500,
-    image: "/images/materials/cement.jpg",
-  },
-  {
-    id: "sand",
-    name: "Sand",
-    description: "Sponsor construction sand required for masonry.",
-    unit: "unit",
-    price: 1500,
-    image: "/images/materials/sand.jpg",
-  },
-  {
-    id: "iron",
-    name: "Iron / Steel",
-    description: "Sponsor iron and steel required for structural work.",
-    unit: "unit",
-    price: 6500,
-    image: "/images/materials/iron.jpg",
-  },
-  {
-    id: "stone",
-    name: "Temple Stone",
-    description: "Sponsor stone for temple structure and finishing.",
-    unit: "unit",
-    price: 2000,
-    image: "/images/materials/stone.jpg",
-  },
-  {
-    id: "tiles",
-    name: "Floor Tiles",
-    description: "Sponsor flooring for temple halls and pathways.",
-    unit: "sq. ft.",
-    price: 45,
-    image: "/images/materials/tiles.jpg",
-  },
-  {
-    id: "paint",
-    name: "Paint",
-    description: "Sponsor paint for temple walls and renovation.",
-    unit: "bucket",
-    price: 2500,
-    image: "/images/materials/paint.jpg",
-  },
-],
+    {
+      id: "brick",
+
+      name: {
+        en: "Bricks",
+        hi: "ईंट",
+      },
+
+      description: {
+        en: "Sponsor bricks for temple walls and construction.",
+        hi: "मंदिर की दीवारों और निर्माण कार्य के लिए ईंटों का सहयोग करें।",
+      },
+
+      unit: {
+        en: "brick",
+        hi: "ईंट",
+      },
+
+      price: 8,
+      image: "/images/materials/bricks.jpg",
+    },
+
+    {
+      id: "cement",
+
+      name: {
+        en: "Cement",
+        hi: "सीमेंट",
+      },
+
+      description: {
+        en: "Sponsor cement bags for construction work.",
+        hi: "मंदिर निर्माण के लिए सीमेंट की बोरियों का सहयोग करें।",
+      },
+
+      unit: {
+        en: "bag",
+        hi: "बैग",
+      },
+
+      price: 500,
+      image: "/images/materials/cement.jpg",
+    },
+
+    {
+      id: "sand",
+
+      name: {
+        en: "Sand",
+        hi: "बालू",
+      },
+
+      description: {
+        en: "Sponsor construction sand required for masonry.",
+        hi: "निर्माण कार्य के लिए आवश्यक बालू का सहयोग करें।",
+      },
+
+      unit: {
+        en: "unit",
+        hi: "यूनिट",
+      },
+
+      price: 1500,
+      image: "/images/materials/sand.jpg",
+    },
+
+    {
+      id: "iron",
+
+      name: {
+        en: "Iron / Steel",
+        hi: "लोहा / स्टील",
+      },
+
+      description: {
+        en: "Sponsor iron and steel required for structural work.",
+        hi: "मंदिर के ढांचे के लिए आवश्यक लोहे और स्टील का सहयोग करें।",
+      },
+
+      unit: {
+        en: "unit",
+        hi: "यूनिट",
+      },
+
+      price: 6500,
+      image: "/images/materials/iron.jpg",
+    },
+
+    {
+      id: "stone",
+
+      name: {
+        en: "Temple Stone",
+        hi: "मंदिर का पत्थर",
+      },
+
+      description: {
+        en: "Sponsor stone for temple structure and finishing.",
+        hi: "मंदिर के निर्माण और सजावट के लिए पत्थर का सहयोग करें।",
+      },
+
+      unit: {
+        en: "unit",
+        hi: "यूनिट",
+      },
+
+      price: 2000,
+      image: "/images/materials/stone.jpg",
+    },
+
+    {
+      id: "tiles",
+
+      name: {
+        en: "Floor Tiles",
+        hi: "फर्श की टाइलें",
+      },
+
+      description: {
+        en: "Sponsor flooring for temple halls and pathways.",
+        hi: "मंदिर के हॉल और रास्तों के फर्श के लिए टाइलों का सहयोग करें।",
+      },
+
+      unit: {
+        en: "sq. ft.",
+        hi: "वर्ग फुट",
+      },
+
+      price: 45,
+      image: "/images/materials/tiles.jpg",
+    },
+
+    {
+      id: "paint",
+
+      name: {
+        en: "Paint",
+        hi: "पेंट",
+      },
+
+      description: {
+        en: "Sponsor paint for temple walls and renovation.",
+        hi: "मंदिर की दीवारों और नवीनीकरण के लिए पेंट का सहयोग करें।",
+      },
+
+      unit: {
+        en: "bucket",
+        hi: "बाल्टी",
+      },
+
+      price: 2500,
+      image: "/images/materials/paint.jpg",
+    },
+  ],
 
   gallery: [
     {
       title: "Morning aarti",
       category: "Daily Seva",
-      image:
-        "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=1400&q=85",
+      image: "",
     },
     {
       title: "Temple courtyard",
@@ -123,14 +219,7 @@ export const CONFIG = {
     {
       title: "Deity darshan",
       category: "Darshan",
-      image:
-        "https://images.unsplash.com/photo-1545987796-200677ee1011?auto=format&fit=crop&w=1400&q=85",
-    },
-    {
-      title: "Annadanam seva",
-      category: "Community",
-      image:
-        "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1400&q=85",
+      image: "",
     },
     {
       title: "Festival lamps",
