@@ -10,3 +10,15 @@
 html { scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; }
 button, a, input { -webkit-tap-highlight-color: transparent; }
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+a {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}

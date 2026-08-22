@@ -92,8 +92,7 @@ export default function SiteFooter({ onDonate }) {
         </div>
       </div>
       <div className="border-t border-white/10 px-4 py-5 text-center text-xs text-amber-50/45">
-        © {new Date().getFullYear()} {CONFIG.templeName}. Frontend-only demo.
-        Configure the payment providers before accepting live donations.
+        © {new Date().getFullYear()} {CONFIG.templeName}.
       </div>
     </footer>
   );
