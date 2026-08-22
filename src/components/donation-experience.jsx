@@ -41,7 +41,7 @@ export default function DonationExperience() {
   // money | materials
 
   // =========================================================
-  // MONEY DONATION
+  // MONEY
   // =========================================================
 
   const [amount, setAmount] = useState(
@@ -59,7 +59,7 @@ export default function DonationExperience() {
   // upi | qr | stripe
 
   // =========================================================
-  // COPY STATE
+  // COPY
   // =========================================================
 
   const [copied, setCopied] = useState(false);
@@ -138,28 +138,22 @@ export default function DonationExperience() {
       ? moneyAmount
       : materialTotal;
 
-  // =========================================================
-  // DONOR DETAILS REQUIRED ABOVE ₹2,000
-  // Applies to money AND materials.
-  // =========================================================
-
+  // Above ₹2,000 applies to both money and materials.
   const requiresDonorDetails =
     finalAmount > DONOR_DETAILS_THRESHOLD;
 
   // =========================================================
-  // MOBILE DETECTION
+  // DEVICE DETECTION
   // =========================================================
 
   const isMobile =
     typeof navigator !== "undefined" &&
-    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    /Android|iPhone|iPad|iPod/i.test(
+      navigator.userAgent
+    );
 
   // =========================================================
   // STANDARD UPI URL
-  //
-  // This is intentionally a standard upi://pay intent.
-  // The phone/browser decides which installed UPI apps
-  // are available to handle the payment.
   // =========================================================
 
   const upiUrl = useMemo(() => {
@@ -174,7 +168,9 @@ export default function DonationExperience() {
       "upi://pay",
       `pa=${encodeURIComponent(CONFIG.upiId)}`,
       `pn=${encodeURIComponent(CONFIG.accountName)}`,
-      `am=${encodeURIComponent(safeAmount.toFixed(2))}`,
+      `am=${encodeURIComponent(
+        safeAmount.toFixed(2)
+      )}`,
       "cu=INR",
       `tn=${encodeURIComponent(transactionNote)}`,
     ].join("&");
@@ -189,7 +185,8 @@ export default function DonationExperience() {
     CONFIG.stripePaymentLinks?.default;
 
   const canStripe = Boolean(
-    stripe && !stripe.includes("REPLACE_WITH_")
+    stripe &&
+      !stripe.includes("REPLACE_WITH_")
   );
 
   // =========================================================
@@ -206,20 +203,28 @@ export default function DonationExperience() {
   // MATERIAL QUANTITY
   // =========================================================
 
-  const updateMaterialQuantity = (materialId, change) => {
+  const updateMaterialQuantity = (
+    materialId,
+    change
+  ) => {
     setMaterialQuantities((current) => ({
       ...current,
 
       [materialId]: Math.max(
         0,
-        Number(current[materialId] || 0) + change
+        Number(
+          current[materialId] || 0
+        ) + change
       ),
     }));
 
     setEmailStatus("idle");
   };
 
-  const changeMaterialQuantity = (materialId, value) => {
+  const changeMaterialQuantity = (
+    materialId,
+    value
+  ) => {
     const quantity = Number(value);
 
     setMaterialQuantities((current) => ({
@@ -227,7 +232,9 @@ export default function DonationExperience() {
 
       [materialId]: Math.max(
         0,
-        Number.isFinite(quantity) ? quantity : 0
+        Number.isFinite(quantity)
+          ? quantity
+          : 0
       ),
     }));
 
@@ -235,10 +242,13 @@ export default function DonationExperience() {
   };
 
   // =========================================================
-  // DONOR DETAILS
+  // DONOR
   // =========================================================
 
-  const updateDonor = (field, value) => {
+  const updateDonor = (
+    field,
+    value
+  ) => {
     setDonor((current) => ({
       ...current,
       [field]: value,
@@ -248,12 +258,14 @@ export default function DonationExperience() {
   };
 
   // =========================================================
-  // COPY UPI ID
+  // COPY UPI
   // =========================================================
 
   const copyUpi = async () => {
     try {
-      await navigator.clipboard?.writeText(CONFIG.upiId);
+      await navigator.clipboard?.writeText(
+        CONFIG.upiId
+      );
 
       setCopied(true);
 
@@ -266,7 +278,7 @@ export default function DonationExperience() {
   };
 
   // =========================================================
-  // MATERIAL EMAIL SUMMARY
+  // MATERIAL SUMMARY FOR EMAIL
   // =========================================================
 
   const materialSummary = useMemo(() => {
@@ -274,18 +286,30 @@ export default function DonationExperience() {
       return "Financial donation";
     }
 
-    const selected = (CONFIG.constructionMaterials || [])
+    const selected = (
+      CONFIG.constructionMaterials || []
+    )
       .filter(
         (material) =>
-          Number(materialQuantities[material.id] || 0) > 0
+          Number(
+            materialQuantities[
+              material.id
+            ] || 0
+          ) > 0
       )
       .map((material) => {
-        const quantity = Number(
-          materialQuantities[material.id] || 0
-        );
+        const quantity =
+          Number(
+            materialQuantities[
+              material.id
+            ] || 0
+          );
 
         const total =
-          quantity * Number(material.price || 0);
+          quantity *
+          Number(
+            material.price || 0
+          );
 
         const materialName =
           material.name?.[language] ||
@@ -300,7 +324,11 @@ export default function DonationExperience() {
     return selected.length > 0
       ? selected.join("\n")
       : "Construction material seva";
-  }, [donationType, materialQuantities, language]);
+  }, [
+    donationType,
+    materialQuantities,
+    language,
+  ]);
 
   // =========================================================
   // VALIDATE DONOR
@@ -335,85 +363,88 @@ export default function DonationExperience() {
   };
 
   // =========================================================
-  // SEND DONATION EMAIL
+  // SEND EMAIL
   // =========================================================
 
-  const sendDonationEmail = async () => {
-    if (!requiresDonorDetails) {
-      return true;
-    }
+  const sendDonationEmail =
+    async () => {
+      if (!requiresDonorDetails) {
+        return true;
+      }
 
-    if (!CONFIG.email?.enabled) {
-      return true;
-    }
+      if (!CONFIG.email?.enabled) {
+        return true;
+      }
 
-    if (!validateDonorDetails()) {
-      return false;
-    }
+      if (!validateDonorDetails()) {
+        return false;
+      }
 
-    setEmailStatus("sending");
+      setEmailStatus("sending");
 
-    try {
-      await emailjs.send(
-        CONFIG.email.serviceId,
-        CONFIG.email.templateId,
-        {
-          to_name: donor.name,
-          to_email: donor.email,
+      try {
+        await emailjs.send(
+          CONFIG.email.serviceId,
+          CONFIG.email.templateId,
+          {
+            to_name: donor.name,
+            to_email: donor.email,
 
-          donor_name: donor.name,
-          donor_email: donor.email,
-          donor_phone:
-            donor.phone || "Not provided",
+            donor_name: donor.name,
+            donor_email: donor.email,
+            donor_phone:
+              donor.phone ||
+              "Not provided",
 
-          temple_name: CONFIG.templeName,
-          temple_location: CONFIG.location,
+            temple_name:
+              CONFIG.templeName,
+            temple_location:
+              CONFIG.location,
 
-          donation_type:
-            donationType === "money"
-              ? "Money Donation"
-              : "Temple Construction Material Seva",
+            donation_type:
+              donationType ===
+              "money"
+                ? "Money Donation"
+                : "Temple Construction Material Seva",
 
-          donation_amount:
-            formatINR(finalAmount),
+            donation_amount:
+              formatINR(finalAmount),
 
-          payment_method:
-            paymentMethod === "upi"
-              ? "UPI App"
-              : paymentMethod === "qr"
-              ? "UPI QR Code"
-              : "Stripe",
+            payment_method:
+              paymentMethod ===
+              "upi"
+                ? "UPI App"
+                : paymentMethod ===
+                  "qr"
+                ? "UPI QR Code"
+                : "Stripe",
 
-          material_summary:
-            materialSummary,
-        },
-        {
-          publicKey:
-            CONFIG.email.publicKey,
-        }
-      );
+            material_summary:
+              materialSummary,
+          },
+          {
+            publicKey:
+              CONFIG.email.publicKey,
+          }
+        );
 
-      setEmailStatus("sent");
+        setEmailStatus("sent");
 
-      return true;
-    } catch (error) {
-      console.error(
-        "Donation email failed:",
-        error
-      );
+        return true;
+      } catch (error) {
+        console.error(
+          "Donation email failed:",
+          error
+        );
 
-      setEmailStatus("error");
+        setEmailStatus("error");
 
-      return false;
-    }
-  };
+        return false;
+      }
+    };
 
   // =========================================================
-  // OPEN ANY UPI APP
-  //
-  // IMPORTANT:
-  // We intentionally use the standard UPI intent.
-  // Do NOT use tez://, phonepe:// or paytmmp:// here.
+  // OPEN UPI
   // =========================================================
 
   const openUpiApp = async () => {
@@ -421,7 +452,6 @@ export default function DonationExperience() {
       return;
     }
 
-    // Donations above ₹2,000 require donor details.
     if (requiresDonorDetails) {
       const emailSent =
         await sendDonationEmail();
@@ -431,11 +461,17 @@ export default function DonationExperience() {
       }
     }
 
-    // Standard UPI payment intent.
-    //
-    // On a supported mobile device, the operating system
-    // should determine which installed UPI application
-    // can handle this payment.
+    /*
+      Standard UPI intent.
+
+      Mobile:
+      Attempts to hand the payment to an installed
+      UPI application.
+
+      Desktop:
+      We do not call this function; the UI directs
+      the user to the QR option instead.
+    */
     window.location.href = upiUrl;
   };
 
@@ -484,7 +520,6 @@ export default function DonationExperience() {
         t.donate.upiDescription,
       icon: Smartphone,
     },
-
     {
       id: "qr",
       title: t.donate.qr,
@@ -492,7 +527,6 @@ export default function DonationExperience() {
         t.donate.qrDescription,
       icon: QrCode,
     },
-
     {
       id: "stripe",
       title: t.donate.stripe,
@@ -518,31 +552,33 @@ export default function DonationExperience() {
               setEmailStatus("idle");
             }}
             className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition ${
-              donationType === "money"
+              donationType ===
+              "money"
                 ? "bg-white text-[#8f2d0c] shadow-sm"
                 : "text-[#725c4a] hover:text-[#8f2d0c]"
             }`}
           >
             <IndianRupee size={17} />
-
             {t.donate.donateMoney}
           </button>
 
           <button
             type="button"
             onClick={() => {
-              setDonationType("materials");
+              setDonationType(
+                "materials"
+              );
               setPaymentMethod("upi");
               setEmailStatus("idle");
             }}
             className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition ${
-              donationType === "materials"
+              donationType ===
+              "materials"
                 ? "bg-white text-[#8f2d0c] shadow-sm"
                 : "text-[#725c4a] hover:text-[#8f2d0c]"
             }`}
           >
             <Building2 size={17} />
-
             {t.donate.sponsorMaterials}
           </button>
         </div>
@@ -552,7 +588,8 @@ export default function DonationExperience() {
           MONEY
       ====================================================== */}
 
-      {donationType === "money" && (
+      {donationType ===
+        "money" && (
         <div className="mt-7">
           <label className="block text-sm font-bold text-[#35291f]">
             {t.donate.chooseAmount}
@@ -619,7 +656,8 @@ export default function DonationExperience() {
           MATERIALS
       ====================================================== */}
 
-      {donationType === "materials" && (
+      {donationType ===
+        "materials" && (
         <div className="mt-7">
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-[#fff1da] p-2.5">
@@ -638,182 +676,159 @@ export default function DonationExperience() {
           </div>
 
           <div className="mt-6 grid gap-5 md:grid-cols-2">
-            {(CONFIG.constructionMaterials || []).map(
-              (material) => {
-                const quantity =
-                  Number(
-                    materialQuantities[
-                      material.id
-                    ] || 0
-                  );
+            {(
+              CONFIG.constructionMaterials ||
+              []
+            ).map((material) => {
+              const quantity =
+                Number(
+                  materialQuantities[
+                    material.id
+                  ] || 0
+                );
 
-                const itemTotal =
-                  quantity *
-                  Number(
-                    material.price || 0
-                  );
+              const itemTotal =
+                quantity *
+                Number(
+                  material.price || 0
+                );
 
-                const materialName =
-                  material.name?.[
-                    language
-                  ] ||
-                  material.name;
+              const materialName =
+                material.name?.[
+                  language
+                ] ||
+                material.name;
 
-                const materialDescription =
-                  material.description?.[
-                    language
-                  ] ||
-                  material.description;
+              const materialDescription =
+                material.description?.[
+                  language
+                ] ||
+                material.description;
 
-                const materialUnit =
-                  material.unit?.[
-                    language
-                  ] ||
-                  material.unit;
+              const materialUnit =
+                material.unit?.[
+                  language
+                ] ||
+                material.unit;
 
-                return (
-                  <div
-                    key={
-                      material.id
-                    }
-                    className={`overflow-hidden rounded-3xl border bg-white transition-all duration-300 ${
-                      quantity > 0
-                        ? "border-[#b9743e] shadow-lg"
-                        : "border-[#eadfcf] hover:-translate-y-1 hover:border-[#d8b18d] hover:shadow-lg"
-                    }`}
-                  >
-                    {/* IMAGE */}
+              return (
+                <div
+                  key={material.id}
+                  className={`overflow-hidden rounded-3xl border bg-white transition-all duration-300 ${
+                    quantity > 0
+                      ? "border-[#b9743e] shadow-lg"
+                      : "border-[#eadfcf] hover:-translate-y-1 hover:border-[#d8b18d] hover:shadow-lg"
+                  }`}
+                >
+                  {/* IMAGE */}
 
-                    <div className="relative h-52 overflow-hidden bg-[#f7efe5]">
-                      <img
-                        src={
-                          material.image ||
-                          "/images/materials/material-placeholder.jpg"
-                        }
-                        alt={
-                          materialName
-                        }
-                        className="h-full w-full object-cover transition duration-500 hover:scale-105"
-                        loading="lazy"
-                        onError={(
-                          event
-                        ) => {
-                          event.currentTarget.src =
-                            "/images/materials/material-placeholder.jpg";
-                        }}
-                      />
+                  <div className="relative h-52 overflow-hidden bg-[#f7efe5]">
+                    <img
+                      src={
+                        material.image ||
+                        "/images/materials/material-placeholder.jpg"
+                      }
+                      alt={materialName}
+                      className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                      loading="lazy"
+                      onError={(event) => {
+                        event.currentTarget.src =
+                          "/images/materials/material-placeholder.jpg";
+                      }}
+                    />
 
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-5 pb-4 pt-14">
-                        <h3 className="text-xl font-bold text-white">
-                          {
-                            materialName
-                          }
-                        </h3>
-                      </div>
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-5 pb-4 pt-14">
+                      <h3 className="text-xl font-bold text-white">
+                        {materialName}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* CONTENT */}
+
+                  <div className="p-5">
+                    <p className="min-h-[48px] text-sm leading-6 text-[#806c5c]">
+                      {materialDescription}
+                    </p>
+
+                    <div className="mt-3">
+                      <span className="text-xl font-bold text-[#9c3b0d]">
+                        {formatINR(
+                          material.price
+                        )}
+                      </span>
+
+                      <span className="ml-1 text-sm text-[#806c5c]">
+                        / {materialUnit}
+                      </span>
                     </div>
 
-                    {/* CONTENT */}
-
-                    <div className="p-5">
-                      <p className="min-h-[48px] text-sm leading-6 text-[#806c5c]">
-                        {
-                          materialDescription
-                        }
-                      </p>
-
-                      <div className="mt-3">
-                        <span className="text-xl font-bold text-[#9c3b0d]">
-                          {formatINR(
-                            material.price
-                          )}
-                        </span>
-
-                        <span className="ml-1 text-sm text-[#806c5c]">
-                          /{" "}
-                          {
-                            materialUnit
+                    <div className="mt-5 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateMaterialQuantity(
+                              material.id,
+                              -1
+                            )
                           }
-                        </span>
+                          disabled={
+                            quantity === 0
+                          }
+                          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#dfd0be] bg-white transition hover:bg-[#f7efe5] disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          <Minus size={15} />
+                        </button>
+
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={quantity}
+                          onChange={(
+                            event
+                          ) =>
+                            changeMaterialQuantity(
+                              material.id,
+                              event.target.value.replace(
+                                /[^0-9]/g,
+                                ""
+                              )
+                            )
+                          }
+                          className="h-10 w-16 rounded-xl border border-[#dfd0be] bg-white text-center text-sm font-bold text-[#35291f] outline-none focus:border-[#a45416] focus:ring-2 focus:ring-[#a45416]/10"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateMaterialQuantity(
+                              material.id,
+                              1
+                            )
+                          }
+                          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#9c3b0d] text-white transition hover:bg-[#7e300d]"
+                        >
+                          <Plus size={15} />
+                        </button>
                       </div>
 
-                      {/* QUANTITY */}
-
-                      <div className="mt-5 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateMaterialQuantity(
-                                material.id,
-                                -1
-                              )
-                            }
-                            disabled={
-                              quantity === 0
-                            }
-                            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#dfd0be] bg-white transition hover:bg-[#f7efe5] disabled:cursor-not-allowed disabled:opacity-40"
-                          >
-                            <Minus
-                              size={15}
-                            />
-                          </button>
-
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={
-                              quantity
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              changeMaterialQuantity(
-                                material.id,
-                                event.target.value.replace(
-                                  /[^0-9]/g,
-                                  ""
-                                )
-                              )
-                            }
-                            className="h-10 w-16 rounded-xl border border-[#dfd0be] bg-white text-center text-sm font-bold text-[#35291f] outline-none focus:border-[#a45416] focus:ring-2 focus:ring-[#a45416]/10"
-                          />
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              updateMaterialQuantity(
-                                material.id,
-                                1
-                              )
-                            }
-                            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#9c3b0d] text-white transition hover:bg-[#7e300d]"
-                          >
-                            <Plus
-                              size={15}
-                            />
-                          </button>
+                      <div className="text-right">
+                        <div className="text-xs text-[#8e7b69]">
+                          {t.donate.itemTotal}
                         </div>
 
-                        <div className="text-right">
-                          <div className="text-xs text-[#8e7b69]">
-                            {
-                              t.donate
-                                .itemTotal
-                            }
-                          </div>
-
-                          <div className="text-lg font-bold text-[#35291f]">
-                            {formatINR(
-                              itemTotal
-                            )}
-                          </div>
+                        <div className="text-lg font-bold text-[#35291f]">
+                          {formatINR(
+                            itemTotal
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
-                );
-              }
-            )}
+                </div>
+              );
+            })}
           </div>
 
           {/* MATERIAL SUMMARY */}
@@ -833,10 +848,7 @@ export default function DonationExperience() {
               >
                 <div>
                   <div className="text-xs font-bold uppercase tracking-[0.12em] text-[#a06a35]">
-                    {
-                      t.donate
-                        .constructionTotal
-                    }
+                    {t.donate.constructionTotal}
                   </div>
 
                   <div className="mt-1 text-xl font-bold text-[#35291f]">
@@ -923,7 +935,7 @@ export default function DonationExperience() {
             </div>
           )}
 
-          {/* MATERIAL THRESHOLD */}
+          {/* THRESHOLD */}
 
           {materialTotal >
             DONOR_DETAILS_THRESHOLD && (
@@ -1010,12 +1022,9 @@ export default function DonationExperience() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            {/* NAME */}
-
             <div>
               <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-[#806c5c]">
                 <User size={14} />
-
                 {t.donate.fullName} *
               </label>
 
@@ -1045,12 +1054,9 @@ export default function DonationExperience() {
               )}
             </div>
 
-            {/* EMAIL */}
-
             <div>
               <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-[#806c5c]">
                 <Mail size={14} />
-
                 {t.donate.email} *
               </label>
 
@@ -1078,12 +1084,9 @@ export default function DonationExperience() {
               )}
             </div>
 
-            {/* PHONE */}
-
             <div>
               <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-[#806c5c]">
                 <Phone size={14} />
-
                 {t.donate.phone}
               </label>
 
@@ -1175,9 +1178,10 @@ export default function DonationExperience() {
       ====================================================== */}
 
       <div className="mt-5 rounded-[1.6rem] border border-[#eadfcf] bg-[#fffaf2] p-6">
-        {/* ==================================================
-            UPI APP
-        =================================================== */}
+
+        {/* ===================================================
+            UPI
+        ==================================================== */}
 
         {paymentMethod ===
           "upi" && (
@@ -1213,9 +1217,7 @@ export default function DonationExperience() {
 
                 <button
                   type="button"
-                  onClick={
-                    copyUpi
-                  }
+                  onClick={copyUpi}
                   className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#dfd0be] px-2.5 py-2 text-xs font-bold transition hover:bg-[#f7efe5]"
                 >
                   {copied ? (
@@ -1225,85 +1227,82 @@ export default function DonationExperience() {
                         className="text-green-600"
                       />
 
-                      {
-                        t.buttons
-                          .copied
-                      }
+                      {t.buttons.copied}
                     </>
                   ) : (
                     <>
-                      <Copy
-                        size={14}
-                      />
+                      <Copy size={14} />
 
-                      {
-                        t.buttons
-                          .copy
-                      }
+                      {t.buttons.copy}
                     </>
                   )}
                 </button>
               </div>
             </div>
 
-            {/* UNIVERSAL UPI BUTTON */}
+            {/* MOBILE */}
 
-            <div className="mt-5">
-              <button
-                type="button"
-                onClick={
-                  openUpiApp
-                }
-                disabled={
-                  finalAmount <=
-                    0 ||
-                  emailStatus ===
-                    "sending"
-                }
-                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#9c3b0d] px-5 py-4 text-sm font-bold text-white transition hover:bg-[#7e300d] disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {emailStatus ===
-                "sending"
-                  ? t.donate
-                      .preparing
-                  : t.buttons
-                      .openUpi}
+            {isMobile ? (
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={openUpiApp}
+                  disabled={
+                    finalAmount <= 0 ||
+                    emailStatus ===
+                      "sending"
+                  }
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#9c3b0d] px-5 py-4 text-sm font-bold text-white transition hover:bg-[#7e300d] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {emailStatus ===
+                  "sending"
+                    ? t.donate
+                        .preparing
+                    : t.buttons
+                        .openUpi}
 
-                <ExternalLink
-                  size={16}
-                />
-              </button>
+                  <Smartphone
+                    size={17}
+                  />
+                </button>
 
-              <p className="mt-3 text-center text-xs leading-5 text-[#806c5c]">
-                {language === "hi"
-                  ? "आपके फोन पर उपलब्ध UPI ऐप चुनें और भुगतान पूरा करें।"
-                  : "Your phone will let you choose an available UPI app to complete the payment."}
-              </p>
-            </div>
-
-            {/* QR FALLBACK MESSAGE */}
-
-            <div className="mt-5 rounded-2xl bg-[#f7efe5] p-4">
-              <div className="flex items-start gap-3">
-                <QrCode className="mt-0.5 h-5 w-5 shrink-0 text-[#9c3b0d]" />
-
-                <div>
-                  <p className="text-sm font-bold text-[#35291f]">
-                    {language ===
-                    "hi"
-                      ? "UPI ऐप नहीं खुल रहा?"
-                      : "UPI app not opening?"}
-                  </p>
-
-                  <p className="mt-1 text-xs leading-5 text-[#806c5c]">
-                    {language ===
-                    "hi"
-                      ? "ऊपर Scan QR विकल्प चुनें और अपने फोन में किसी भी UPI ऐप से QR स्कैन करें।"
-                      : "Choose Scan QR above and scan the code with any UPI app on your phone."}
-                  </p>
-                </div>
+                <p className="mt-3 text-center text-xs leading-5 text-[#806c5c]">
+                  {language === "hi"
+                    ? "आपके फोन पर UPI भुगतान खोलने का प्रयास किया जाएगा।"
+                    : "We'll try to open UPI payment on your phone."}
+                </p>
               </div>
-            </div>
+            ) : (
+              /* DESKTOP */
+
+              <div className="mt-5">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPaymentMethod(
+                      "qr"
+                    )
+                  }
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#9c3b0d] px-5 py-4 text-sm font-bold text-white transition hover:bg-[#7e300d]"
+                >
+                  <QrCode
+                    size={17}
+                  />
+
+                  {language === "hi"
+                    ? "QR कोड से भुगतान करें"
+                    : "Pay using QR Code"}
+                </button>
+
+                <p className="mt-3 text-center text-xs leading-5 text-[#806c5c]">
+                  {language === "hi"
+                    ? "कंप्यूटर पर अपने फोन से QR कोड स्कैन करके भुगतान करें।"
+                    : "On a computer, scan the QR code with your phone to pay."}
+                </p>
+              </div>
+            )}
+
+            {/* EMAIL STATUS */}
 
             {emailStatus ===
               "error" && (
@@ -1329,12 +1328,36 @@ export default function DonationExperience() {
                 {donor.email}
               </p>
             )}
+
+            {/* QR FALLBACK NOTE */}
+
+            <div className="mt-5 rounded-2xl bg-[#f7efe5] p-4">
+              <div className="flex items-start gap-3">
+                <QrCode className="mt-0.5 h-5 w-5 shrink-0 text-[#9c3b0d]" />
+
+                <div>
+                  <p className="text-sm font-bold text-[#35291f]">
+                    {language ===
+                    "hi"
+                      ? "UPI ऐप नहीं खुल रहा?"
+                      : "UPI app not opening?"}
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-[#806c5c]">
+                    {language ===
+                    "hi"
+                      ? "ऊपर QR विकल्प चुनें और अपने पसंदीदा UPI ऐप से QR स्कैन करें।"
+                      : "Choose the QR option above and scan it using your preferred UPI app."}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* ==================================================
+        {/* ===================================================
             QR
-        =================================================== */}
+        ==================================================== */}
 
         {paymentMethod ===
           "qr" && (
@@ -1346,9 +1369,7 @@ export default function DonationExperience() {
             <div className="mt-5 grid gap-7 md:grid-cols-[auto_1fr] md:items-center">
               <div className="mx-auto rounded-2xl bg-white p-4 shadow-sm">
                 <QRCodeCanvas
-                  value={
-                    upiUrl
-                  }
+                  value={upiUrl}
                   size={220}
                   includeMargin
                 />
@@ -1364,8 +1385,7 @@ export default function DonationExperience() {
 
                 <div className="mt-2 text-2xl font-bold text-[#9c3b0d]">
                   {formatINR(
-                    finalAmount ||
-                      0
+                    finalAmount || 0
                   )}
                 </div>
 
@@ -1385,9 +1405,7 @@ export default function DonationExperience() {
                   </div>
 
                   <div className="mt-1 font-mono text-sm font-bold text-[#35291f]">
-                    {
-                      CONFIG.upiId
-                    }
+                    {CONFIG.upiId}
                   </div>
                 </div>
 
@@ -1445,18 +1463,15 @@ export default function DonationExperience() {
           </div>
         )}
 
-        {/* ==================================================
+        {/* ===================================================
             STRIPE
-        =================================================== */}
+        ==================================================== */}
 
         {paymentMethod ===
           "stripe" && (
           <div>
             <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#a06a35]">
-              {
-                t.donate
-                  .stripe
-              }
+              {t.donate.stripe}
             </div>
 
             <h3 className="mt-2 font-serif text-3xl font-semibold text-[#35291f]">
@@ -1544,7 +1559,7 @@ export default function DonationExperience() {
       </div>
 
       {/* =====================================================
-          TRUST NOTICE
+          TRUST
       ====================================================== */}
 
       <div className="mt-5">
