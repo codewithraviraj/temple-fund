@@ -156,25 +156,25 @@ export default function DonationExperience() {
   // STANDARD UPI URL
   // =========================================================
 
-  const upiUrl = useMemo(() => {
-    const safeAmount = Number(finalAmount) || 0;
+const upiUrl = useMemo(() => {
+  const safeAmount = Number(finalAmount) || 0;
 
-    const transactionNote =
-      donationType === "money"
-        ? "Temple Seva Donation"
-        : "Temple Construction Material Seva";
+  const transactionNote =
+    donationType === "money"
+      ? "Temple Seva Donation"
+      : "Temple Construction Material Seva";
 
-    return [
-      "upi://pay",
-      `pa=${encodeURIComponent(CONFIG.upiId)}`,
-      `pn=${encodeURIComponent(CONFIG.accountName)}`,
-      `am=${encodeURIComponent(
-        safeAmount.toFixed(2)
-      )}`,
-      "cu=INR",
-      `tn=${encodeURIComponent(transactionNote)}`,
-    ].join("&");
-  }, [finalAmount, donationType]);
+  return (
+    "upi://pay?" +
+    `pa=${encodeURIComponent(CONFIG.upiId)}` +
+    `&pn=${encodeURIComponent(CONFIG.accountName)}` +
+    `&am=${encodeURIComponent(
+      safeAmount.toFixed(2)
+    )}` +
+    "&cu=INR" +
+    `&tn=${encodeURIComponent(transactionNote)}`
+  );
+}, [finalAmount, donationType]);
 
   // =========================================================
   // STRIPE
