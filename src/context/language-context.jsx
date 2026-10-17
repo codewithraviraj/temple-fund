@@ -82,10 +82,15 @@ const translations = {
       fullName: "Full Name",
       email: "Email",
       phone: "Phone",
+      panNumber: "PAN Number",
+      taxRebateRequest:
+        "I would like to request a tax-benefit receipt, if eligible.",
 
       nameRequired: "Please enter your name.",
       emailRequired:
         "Please enter a valid email address.",
+      panNumberInvalid:
+        "Please enter a valid PAN number (for example ABCDE1234F).",
 
       emailSent: "Thank-you email sent to",
       emailFailed:
@@ -200,10 +205,15 @@ const translations = {
       fullName: "पूरा नाम",
       email: "ईमेल",
       phone: "मोबाइल नंबर",
+      panNumber: "PAN नंबर",
+      taxRebateRequest:
+        "यदि पात्रता हो, तो मैं कर लाभ की रसीद का अनुरोध करना चाहता/चाहती हूँ।",
 
       nameRequired: "कृपया अपना नाम दर्ज करें।",
       emailRequired:
         "कृपया एक मान्य ईमेल पता दर्ज करें।",
+      panNumberInvalid:
+        "कृपया एक मान्य PAN नंबर दर्ज करें (उदाहरण: ABCDE1234F)।",
 
       emailSent: "धन्यवाद ईमेल भेज दिया गया:",
       emailFailed:

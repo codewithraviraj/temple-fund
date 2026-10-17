@@ -1,10 +1,10 @@
 export const CONFIG = {
   templeName: "Sri Sri 108 Sarwjanik Maa Kali Balajee Babosa Mandir",
-  shortName: "Ananta Seva",
+  //shortName: "Ananta Seva",
   location: "Kishanganj, Bihar",
   address: "Ward No 11, Dharamganj, Kishanganj, Pin-855108, Bihar",
   phone: "+91 90000 12345",
-  email: "seva@anantatemple.org",
+  contactEmail: "maakalibalajeebabosatrust.official@gmail.com",
 
   upiId: "temple.seva@upi",
 
@@ -32,7 +32,7 @@ export const CONFIG = {
     11001: "https://buy.stripe.com/REPLACE_WITH_11001_LINK",
   },
 
-  email: {
+  emailjs: {
     enabled: true,
 
     serviceId: "YOUR_EMAILJS_SERVICE_ID",
@@ -49,6 +49,50 @@ export const CONFIG = {
   // ------------------------------------------
 
   constructionMaterials: [
+    {
+      id: "pillar",
+
+      name: {
+        en: "Temple Pillar",
+        hi: "मंदिर का स्तंभ",
+      },
+
+      description: {
+        en: "Sponsor a pillar for the temple structure.",
+        hi: "मंदिर के निर्माण के लिए एक स्तंभ का सहयोग करें।",
+      },
+
+      unit: {
+        en: "pillar",
+        hi: "स्तंभ",
+      },
+
+      price: 30000,
+      image: "/images/materials/pillar.svg",
+    },
+
+    {
+      id: "gumbad",
+
+      name: {
+        en: "Temple Gumbad (Dome)",
+        hi: "मंदिर का गुंबद",
+      },
+
+      description: {
+        en: "Sponsor the temple dome.",
+        hi: "मंदिर के गुंबद का सहयोग करें।",
+      },
+
+      unit: {
+        en: "gumbad",
+        hi: "गुंबद",
+      },
+
+      price: 50000,
+      image: "/images/materials/gumbad.svg",
+    },
+
     {
       id: "brick",
 

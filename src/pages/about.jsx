@@ -2,6 +2,7 @@ import React from "react";
 import { Landmark, Heart, BookOpen } from "lucide-react";
 import { CONFIG } from "../data/config";
 import { PageShell, SectionIntro, Stat } from "../components/ui";
+import templeImage from "../assets/temple/temple.jpeg";
 
 export default function About() {
   return (
@@ -12,7 +13,7 @@ export default function About() {
       <div className="grid gap-10 lg:grid-cols-[1.1fr_.9fr] lg:items-start">
         <div className="overflow-hidden rounded-[2rem] bg-[#3f1b10]">
           <img
-            src="https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1600&q=90"
+            src={templeImage}
             alt="Temple courtyard"
             className="h-[520px] w-full object-cover"
           />

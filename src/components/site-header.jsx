@@ -11,8 +11,7 @@ export default function SiteHeader({ onDonate }) {
 
   const location = useLocation();
 
-  const { language, toggleLanguage, t } =
-    useLanguage();
+  const { language, toggleLanguage, t } = useLanguage();
 
   const navItems = [
     [t.nav.home, "/"],
@@ -45,16 +44,10 @@ export default function SiteHeader({ onDonate }) {
             onClick={() => setOpen(false)}
           >
             <div className="grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-[#8f2d0c] to-[#bb5c20] text-amber-50 shadow-lg">
-              <span className="font-serif text-xl">
-                ॐ
-              </span>
+              <span className="font-serif text-xl">ॐ</span>
             </div>
 
             <div>
-              <div className="font-serif text-lg font-semibold leading-none text-[#4b1b0d]">
-                {CONFIG.shortName}
-              </div>
-
               <div className="mt-1 max-w-[220px] text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8b7564] sm:tracking-[0.18em]">
                 {CONFIG.templeName}
               </div>
@@ -102,24 +95,18 @@ export default function SiteHeader({ onDonate }) {
               onClick={toggleLanguage}
               className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#dfd0be] bg-white px-4 py-2 text-sm font-bold text-[#7e300d] transition hover:border-[#b9743e] hover:bg-[#fff1da]"
               aria-label={
-                language === "en"
-                  ? "Switch to Hindi"
-                  : "Switch to English"
+                language === "en" ? "Switch to Hindi" : "Switch to English"
               }
             >
               <Languages size={16} />
 
-              {language === "en"
-                ? "हिंदी"
-                : "English"}
+              {language === "en" ? "हिंदी" : "English"}
             </button>
 
             {/* DONATE BUTTON */}
 
             <div>
-              <DonateButton
-                onClick={onDonate}
-              />
+              <DonateButton onClick={onDonate} />
             </div>
           </div>
 
@@ -133,16 +120,12 @@ export default function SiteHeader({ onDonate }) {
               onClick={toggleLanguage}
               className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#dfd0be] bg-white px-3 py-2 text-xs font-bold text-[#7e300d] transition hover:bg-[#fff1da]"
               aria-label={
-                language === "en"
-                  ? "Switch to Hindi"
-                  : "Switch to English"
+                language === "en" ? "Switch to Hindi" : "Switch to English"
               }
             >
               <Languages size={14} />
 
-              {language === "en"
-                ? "हिंदी"
-                : "EN"}
+              {language === "en" ? "हिंदी" : "EN"}
             </button>
 
             {/* MENU BUTTON */}
@@ -151,18 +134,10 @@ export default function SiteHeader({ onDonate }) {
               type="button"
               className="cursor-pointer rounded-xl border border-[#e1d2c0] p-2 transition hover:bg-[#fff1da] md:hidden"
               onClick={() => setOpen(!open)}
-              aria-label={
-                open
-                  ? "Close menu"
-                  : "Open menu"
-              }
+              aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
             >
-              {open ? (
-                <X size={20} />
-              ) : (
-                <Menu size={20} />
-              )}
+              {open ? <X size={20} /> : <Menu size={20} />}
             </button>
           </div>
         </div>
@@ -172,38 +147,31 @@ export default function SiteHeader({ onDonate }) {
         {open && (
           <div className="border-t border-[#e8dbc9] bg-[#fffaf2] px-4 pb-5 md:hidden">
             <nav>
-              {navItems.map(
-                ([label, href]) => (
-                  <Link
-                    key={href}
-                    to={href}
-                    className={`block border-b border-[#eadfcf] py-3 text-sm font-semibold ${
-                      location.pathname === href
-                        ? "text-[#8f2d0c]"
-                        : "text-[#624f40]"
-                    }`}
-                    onClick={() =>
-                      setOpen(false)
-                    }
-                  >
-                    {label}
-                  </Link>
-                )
-              )}
+              {navItems.map(([label, href]) => (
+                <Link
+                  key={href}
+                  to={href}
+                  className={`block border-b border-[#eadfcf] py-3 text-sm font-semibold ${
+                    location.pathname === href
+                      ? "text-[#8f2d0c]"
+                      : "text-[#624f40]"
+                  }`}
+                  onClick={() => setOpen(false)}
+                >
+                  {label}
+                </Link>
+              ))}
 
               {/* MOBILE DONATE */}
 
               <Link
                 to="/donate"
                 className={`block border-b border-[#eadfcf] py-3 text-sm font-semibold ${
-                  location.pathname ===
-                  "/donate"
+                  location.pathname === "/donate"
                     ? "text-[#8f2d0c]"
                     : "text-[#624f40]"
                 }`}
-                onClick={() =>
-                  setOpen(false)
-                }
+                onClick={() => setOpen(false)}
               >
                 {t.nav.donate}
               </Link>

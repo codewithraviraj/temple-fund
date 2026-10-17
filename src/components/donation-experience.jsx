@@ -44,9 +44,7 @@ export default function DonationExperience() {
   // MONEY
   // =========================================================
 
-  const [amount, setAmount] = useState(
-    CONFIG.suggestedAmounts[1] || 1001
-  );
+  const [amount, setAmount] = useState(CONFIG.suggestedAmounts[1] || 1001);
 
   const [custom, setCustom] = useState("");
 
@@ -68,8 +66,7 @@ export default function DonationExperience() {
   // MATERIAL SUMMARY
   // =========================================================
 
-  const [showMaterialSummary, setShowMaterialSummary] =
-    useState(true);
+  const [showMaterialSummary, setShowMaterialSummary] = useState(true);
 
   // =========================================================
   // DONOR
@@ -79,6 +76,8 @@ export default function DonationExperience() {
     name: "",
     email: "",
     phone: "",
+    panNumber: "",
+    taxRebate: false,
   });
 
   const [emailStatus, setEmailStatus] = useState("idle");
@@ -88,13 +87,10 @@ export default function DonationExperience() {
   // =========================================================
 
   const [materialQuantities, setMaterialQuantities] = useState(() =>
-    (CONFIG.constructionMaterials || []).reduce(
-      (acc, material) => {
-        acc[material.id] = 0;
-        return acc;
-      },
-      {}
-    )
+    (CONFIG.constructionMaterials || []).reduce((acc, material) => {
+      acc[material.id] = 0;
+      return acc;
+    }, {}),
   );
 
   // =========================================================
@@ -114,33 +110,21 @@ export default function DonationExperience() {
   // =========================================================
 
   const materialTotal = useMemo(() => {
-    return (CONFIG.constructionMaterials || []).reduce(
-      (total, material) => {
-        const quantity = Number(
-          materialQuantities[material.id] || 0
-        );
+    return (CONFIG.constructionMaterials || []).reduce((total, material) => {
+      const quantity = Number(materialQuantities[material.id] || 0);
 
-        return (
-          total +
-          quantity * Number(material.price || 0)
-        );
-      },
-      0
-    );
+      return total + quantity * Number(material.price || 0);
+    }, 0);
   }, [materialQuantities]);
 
   // =========================================================
   // FINAL AMOUNT
   // =========================================================
 
-  const finalAmount =
-    donationType === "money"
-      ? moneyAmount
-      : materialTotal;
+  const finalAmount = donationType === "money" ? moneyAmount : materialTotal;
 
   // Above ₹2,000 applies to both money and materials.
-  const requiresDonorDetails =
-    finalAmount > DONOR_DETAILS_THRESHOLD;
+  const requiresDonorDetails = finalAmount > DONOR_DETAILS_THRESHOLD;
 
   // =========================================================
   // DEVICE DETECTION
@@ -148,33 +132,29 @@ export default function DonationExperience() {
 
   const isMobile =
     typeof navigator !== "undefined" &&
-    /Android|iPhone|iPad|iPod/i.test(
-      navigator.userAgent
-    );
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   // =========================================================
   // STANDARD UPI URL
   // =========================================================
 
-const upiUrl = useMemo(() => {
-  const safeAmount = Number(finalAmount) || 0;
+  const upiUrl = useMemo(() => {
+    const safeAmount = Number(finalAmount) || 0;
 
-  const transactionNote =
-    donationType === "money"
-      ? "Temple Seva Donation"
-      : "Temple Construction Material Seva";
+    const transactionNote =
+      donationType === "money"
+        ? "Temple Seva Donation"
+        : "Temple Construction Material Seva";
 
-  return (
-    "upi://pay?" +
-    `pa=${encodeURIComponent(CONFIG.upiId)}` +
-    `&pn=${encodeURIComponent(CONFIG.accountName)}` +
-    `&am=${encodeURIComponent(
-      safeAmount.toFixed(2)
-    )}` +
-    "&cu=INR" +
-    `&tn=${encodeURIComponent(transactionNote)}`
-  );
-}, [finalAmount, donationType]);
+    return (
+      "upi://pay?" +
+      `pa=${encodeURIComponent(CONFIG.upiId)}` +
+      `&pn=${encodeURIComponent(CONFIG.accountName)}` +
+      `&am=${encodeURIComponent(safeAmount.toFixed(2))}` +
+      "&cu=INR" +
+      `&tn=${encodeURIComponent(transactionNote)}`
+    );
+  }, [finalAmount, donationType]);
 
   // =========================================================
   // STRIPE
@@ -184,10 +164,7 @@ const upiUrl = useMemo(() => {
     CONFIG.stripePaymentLinks?.[finalAmount] ||
     CONFIG.stripePaymentLinks?.default;
 
-  const canStripe = Boolean(
-    stripe &&
-      !stripe.includes("REPLACE_WITH_")
-  );
+  const canStripe = Boolean(stripe && !stripe.includes("REPLACE_WITH_"));
 
   // =========================================================
   // SELECT MONEY AMOUNT
@@ -203,39 +180,23 @@ const upiUrl = useMemo(() => {
   // MATERIAL QUANTITY
   // =========================================================
 
-  const updateMaterialQuantity = (
-    materialId,
-    change
-  ) => {
+  const updateMaterialQuantity = (materialId, change) => {
     setMaterialQuantities((current) => ({
       ...current,
 
-      [materialId]: Math.max(
-        0,
-        Number(
-          current[materialId] || 0
-        ) + change
-      ),
+      [materialId]: Math.max(0, Number(current[materialId] || 0) + change),
     }));
 
     setEmailStatus("idle");
   };
 
-  const changeMaterialQuantity = (
-    materialId,
-    value
-  ) => {
+  const changeMaterialQuantity = (materialId, value) => {
     const quantity = Number(value);
 
     setMaterialQuantities((current) => ({
       ...current,
 
-      [materialId]: Math.max(
-        0,
-        Number.isFinite(quantity)
-          ? quantity
-          : 0
-      ),
+      [materialId]: Math.max(0, Number.isFinite(quantity) ? quantity : 0),
     }));
 
     setEmailStatus("idle");
@@ -245,13 +206,18 @@ const upiUrl = useMemo(() => {
   // DONOR
   // =========================================================
 
-  const updateDonor = (
-    field,
-    value
-  ) => {
+  const updateDonor = (field, value) => {
+    const nextValue =
+      field === "panNumber"
+        ? value
+            .replace(/[^A-Za-z0-9]/g, "")
+            .slice(0, 10)
+            .toUpperCase()
+        : value;
+
     setDonor((current) => ({
       ...current,
-      [field]: value,
+      [field]: nextValue,
     }));
 
     setEmailStatus("idle");
@@ -263,9 +229,7 @@ const upiUrl = useMemo(() => {
 
   const copyUpi = async () => {
     try {
-      await navigator.clipboard?.writeText(
-        CONFIG.upiId
-      );
+      await navigator.clipboard?.writeText(CONFIG.upiId);
 
       setCopied(true);
 
@@ -286,49 +250,22 @@ const upiUrl = useMemo(() => {
       return "Financial donation";
     }
 
-    const selected = (
-      CONFIG.constructionMaterials || []
-    )
-      .filter(
-        (material) =>
-          Number(
-            materialQuantities[
-              material.id
-            ] || 0
-          ) > 0
-      )
+    const selected = (CONFIG.constructionMaterials || [])
+      .filter((material) => Number(materialQuantities[material.id] || 0) > 0)
       .map((material) => {
-        const quantity =
-          Number(
-            materialQuantities[
-              material.id
-            ] || 0
-          );
+        const quantity = Number(materialQuantities[material.id] || 0);
 
-        const total =
-          quantity *
-          Number(
-            material.price || 0
-          );
+        const total = quantity * Number(material.price || 0);
 
-        const materialName =
-          material.name?.[language] ||
-          material.name ||
-          "";
+        const materialName = material.name?.[language] || material.name || "";
 
-        return `${quantity} x ${materialName} = ${formatINR(
-          total
-        )}`;
+        return `${quantity} x ${materialName} = ${formatINR(total)}`;
       });
 
     return selected.length > 0
       ? selected.join("\n")
       : "Construction material seva";
-  }, [
-    donationType,
-    materialQuantities,
-    language,
-  ]);
+  }, [donationType, materialQuantities, language]);
 
   // =========================================================
   // VALIDATE DONOR
@@ -349,13 +286,17 @@ const upiUrl = useMemo(() => {
       return false;
     }
 
-    const emailValid =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-        donor.email
-      );
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(donor.email);
 
     if (!emailValid) {
       setEmailStatus("email-error");
+      return false;
+    }
+
+    const normalizedPan = donor.panNumber.trim();
+
+    if (normalizedPan && !/^[A-Z]{5}[0-9]{4}[A-Z]$/i.test(normalizedPan)) {
+      setEmailStatus("pan-error");
       return false;
     }
 
@@ -366,82 +307,70 @@ const upiUrl = useMemo(() => {
   // SEND EMAIL
   // =========================================================
 
-  const sendDonationEmail =
-    async () => {
-      if (!requiresDonorDetails) {
-        return true;
-      }
+  const sendDonationEmail = async () => {
+    if (!requiresDonorDetails) {
+      return true;
+    }
 
-      if (!CONFIG.email?.enabled) {
-        return true;
-      }
+    if (!CONFIG.emailjs?.enabled) {
+      return true;
+    }
 
-      if (!validateDonorDetails()) {
-        return false;
-      }
+    if (!validateDonorDetails()) {
+      return false;
+    }
 
-      setEmailStatus("sending");
+    setEmailStatus("sending");
 
-      try {
-        await emailjs.send(
-          CONFIG.email.serviceId,
-          CONFIG.email.templateId,
-          {
-            to_name: donor.name,
-            to_email: donor.email,
+    try {
+      await emailjs.send(
+        CONFIG.emailjs.serviceId,
+        CONFIG.emailjs.templateId,
+        {
+          to_name: donor.name,
+          to_email: donor.email,
 
-            donor_name: donor.name,
-            donor_email: donor.email,
-            donor_phone:
-              donor.phone ||
-              "Not provided",
+          donor_name: donor.name,
+          donor_email: donor.email,
+          donor_phone: donor.phone || "Not provided",
+          donor_pan: donor.panNumber.trim() || "Not provided",
+          tax_rebate_requested: donor.taxRebate ? "Yes" : "No",
 
-            temple_name:
-              CONFIG.templeName,
-            temple_location:
-              CONFIG.location,
+          temple_name: CONFIG.templeName,
+          temple_location: CONFIG.location,
 
-            donation_type:
-              donationType ===
-              "money"
-                ? "Money Donation"
-                : "Temple Construction Material Seva",
+          donation_type:
+            donationType === "money"
+              ? "Money Donation"
+              : "Temple Construction Material Seva",
 
-            donation_amount:
-              formatINR(finalAmount),
+          donation_amount: formatINR(finalAmount),
 
-            payment_method:
-              paymentMethod ===
-              "upi"
-                ? "UPI App"
-                : paymentMethod ===
-                  "qr"
+          payment_method:
+            paymentMethod === "upi"
+              ? "UPI App"
+              : paymentMethod === "qr"
                 ? "UPI QR Code"
                 : "Stripe",
 
-            material_summary:
-              materialSummary,
-          },
-          {
-            publicKey:
-              CONFIG.email.publicKey,
-          }
-        );
+          material_summary: materialSummary,
+        },
+        {
+          publicKey: CONFIG.emailjs.publicKey,
+        },
+      );
 
-        setEmailStatus("sent");
+      setEmailStatus("sent");
 
-        return true;
-      } catch (error) {
-        console.error(
-          "Donation email failed:",
-          error
-        );
+      return true;
+    } catch (error) {
+      console.error("Donation email failed:", error);
 
-        setEmailStatus("error");
+      setEmailStatus("error");
 
-        return false;
-      }
-    };
+      return false;
+    }
+  };
 
   // =========================================================
   // OPEN UPI
@@ -453,8 +382,7 @@ const upiUrl = useMemo(() => {
     }
 
     if (requiresDonorDetails) {
-      const emailSent =
-        await sendDonationEmail();
+      const emailSent = await sendDonationEmail();
 
       if (!emailSent) {
         return;
@@ -485,27 +413,20 @@ const upiUrl = useMemo(() => {
     }
 
     if (!canStripe) {
-      alert(
-        t.donate.stripeNotConfigured
-      );
+      alert(t.donate.stripeNotConfigured);
 
       return;
     }
 
     if (requiresDonorDetails) {
-      const emailSent =
-        await sendDonationEmail();
+      const emailSent = await sendDonationEmail();
 
       if (!emailSent) {
         return;
       }
     }
 
-    window.open(
-      stripe,
-      "_blank",
-      "noopener,noreferrer"
-    );
+    window.open(stripe, "_blank", "noopener,noreferrer");
   };
 
   // =========================================================
@@ -516,22 +437,19 @@ const upiUrl = useMemo(() => {
     {
       id: "upi",
       title: t.donate.upi,
-      subtitle:
-        t.donate.upiDescription,
+      subtitle: t.donate.upiDescription,
       icon: Smartphone,
     },
     {
       id: "qr",
       title: t.donate.qr,
-      subtitle:
-        t.donate.qrDescription,
+      subtitle: t.donate.qrDescription,
       icon: QrCode,
     },
     {
       id: "stripe",
       title: t.donate.stripe,
-      subtitle:
-        t.donate.stripeDescription,
+      subtitle: t.donate.stripeDescription,
       icon: CreditCard,
     },
   ];
@@ -552,8 +470,7 @@ const upiUrl = useMemo(() => {
               setEmailStatus("idle");
             }}
             className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition ${
-              donationType ===
-              "money"
+              donationType === "money"
                 ? "bg-white text-[#8f2d0c] shadow-sm"
                 : "text-[#725c4a] hover:text-[#8f2d0c]"
             }`}
@@ -565,15 +482,12 @@ const upiUrl = useMemo(() => {
           <button
             type="button"
             onClick={() => {
-              setDonationType(
-                "materials"
-              );
+              setDonationType("materials");
               setPaymentMethod("upi");
               setEmailStatus("idle");
             }}
             className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition ${
-              donationType ===
-              "materials"
+              donationType === "materials"
                 ? "bg-white text-[#8f2d0c] shadow-sm"
                 : "text-[#725c4a] hover:text-[#8f2d0c]"
             }`}
@@ -588,33 +502,27 @@ const upiUrl = useMemo(() => {
           MONEY
       ====================================================== */}
 
-      {donationType ===
-        "money" && (
+      {donationType === "money" && (
         <div className="mt-7">
           <label className="block text-sm font-bold text-[#35291f]">
             {t.donate.chooseAmount}
           </label>
 
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
-            {CONFIG.suggestedAmounts.map(
-              (value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() =>
-                    selectAmount(value)
-                  }
-                  className={`cursor-pointer rounded-2xl border px-4 py-3 text-sm font-bold transition ${
-                    !custom &&
-                    amount === value
-                      ? "border-[#a45416] bg-[#fff1da] text-[#7e300d]"
-                      : "border-[#e6d8c7] bg-white text-[#5f5147] hover:border-[#b9743e]"
-                  }`}
-                >
-                  {formatINR(value)}
-                </button>
-              )
-            )}
+            {CONFIG.suggestedAmounts.map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => selectAmount(value)}
+                className={`cursor-pointer rounded-2xl border px-4 py-3 text-sm font-bold transition ${
+                  !custom && amount === value
+                    ? "border-[#a45416] bg-[#fff1da] text-[#7e300d]"
+                    : "border-[#e6d8c7] bg-white text-[#5f5147] hover:border-[#b9743e]"
+                }`}
+              >
+                {formatINR(value)}
+              </button>
+            ))}
           </div>
 
           <div className="mt-5">
@@ -633,18 +541,11 @@ const upiUrl = useMemo(() => {
                 inputMode="numeric"
                 value={custom}
                 onChange={(event) => {
-                  setCustom(
-                    event.target.value.replace(
-                      /[^0-9]/g,
-                      ""
-                    )
-                  );
+                  setCustom(event.target.value.replace(/[^0-9]/g, ""));
 
                   setEmailStatus("idle");
                 }}
-                placeholder={
-                  t.donate.enterAmount
-                }
+                placeholder={t.donate.enterAmount}
                 className="w-full rounded-2xl border border-[#ddcfbd] bg-[#fffdf9] py-3.5 pl-11 pr-4 outline-none transition focus:border-[#a45416] focus:ring-2 focus:ring-[#a45416]/10"
               />
             </div>
@@ -656,8 +557,7 @@ const upiUrl = useMemo(() => {
           MATERIALS
       ====================================================== */}
 
-      {donationType ===
-        "materials" && (
+      {donationType === "materials" && (
         <div className="mt-7">
           <div className="flex items-start gap-3">
             <div className="rounded-xl bg-[#fff1da] p-2.5">
@@ -676,40 +576,17 @@ const upiUrl = useMemo(() => {
           </div>
 
           <div className="mt-6 grid gap-5 md:grid-cols-2">
-            {(
-              CONFIG.constructionMaterials ||
-              []
-            ).map((material) => {
-              const quantity =
-                Number(
-                  materialQuantities[
-                    material.id
-                  ] || 0
-                );
+            {(CONFIG.constructionMaterials || []).map((material) => {
+              const quantity = Number(materialQuantities[material.id] || 0);
 
-              const itemTotal =
-                quantity *
-                Number(
-                  material.price || 0
-                );
+              const itemTotal = quantity * Number(material.price || 0);
 
-              const materialName =
-                material.name?.[
-                  language
-                ] ||
-                material.name;
+              const materialName = material.name?.[language] || material.name;
 
               const materialDescription =
-                material.description?.[
-                  language
-                ] ||
-                material.description;
+                material.description?.[language] || material.description;
 
-              const materialUnit =
-                material.unit?.[
-                  language
-                ] ||
-                material.unit;
+              const materialUnit = material.unit?.[language] || material.unit;
 
               return (
                 <div
@@ -753,9 +630,7 @@ const upiUrl = useMemo(() => {
 
                     <div className="mt-3">
                       <span className="text-xl font-bold text-[#9c3b0d]">
-                        {formatINR(
-                          material.price
-                        )}
+                        {formatINR(material.price)}
                       </span>
 
                       <span className="ml-1 text-sm text-[#806c5c]">
@@ -768,14 +643,9 @@ const upiUrl = useMemo(() => {
                         <button
                           type="button"
                           onClick={() =>
-                            updateMaterialQuantity(
-                              material.id,
-                              -1
-                            )
+                            updateMaterialQuantity(material.id, -1)
                           }
-                          disabled={
-                            quantity === 0
-                          }
+                          disabled={quantity === 0}
                           className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#dfd0be] bg-white transition hover:bg-[#f7efe5] disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           <Minus size={15} />
@@ -785,15 +655,10 @@ const upiUrl = useMemo(() => {
                           type="text"
                           inputMode="numeric"
                           value={quantity}
-                          onChange={(
-                            event
-                          ) =>
+                          onChange={(event) =>
                             changeMaterialQuantity(
                               material.id,
-                              event.target.value.replace(
-                                /[^0-9]/g,
-                                ""
-                              )
+                              event.target.value.replace(/[^0-9]/g, ""),
                             )
                           }
                           className="h-10 w-16 rounded-xl border border-[#dfd0be] bg-white text-center text-sm font-bold text-[#35291f] outline-none focus:border-[#a45416] focus:ring-2 focus:ring-[#a45416]/10"
@@ -801,12 +666,7 @@ const upiUrl = useMemo(() => {
 
                         <button
                           type="button"
-                          onClick={() =>
-                            updateMaterialQuantity(
-                              material.id,
-                              1
-                            )
-                          }
+                          onClick={() => updateMaterialQuantity(material.id, 1)}
                           className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#9c3b0d] text-white transition hover:bg-[#7e300d]"
                         >
                           <Plus size={15} />
@@ -819,9 +679,7 @@ const upiUrl = useMemo(() => {
                         </div>
 
                         <div className="text-lg font-bold text-[#35291f]">
-                          {formatINR(
-                            itemTotal
-                          )}
+                          {formatINR(itemTotal)}
                         </div>
                       </div>
                     </div>
@@ -833,17 +691,11 @@ const upiUrl = useMemo(() => {
 
           {/* MATERIAL SUMMARY */}
 
-          {materialTotal >
-            0 && (
+          {materialTotal > 0 && (
             <div className="mt-6 overflow-hidden rounded-3xl border border-[#eadfcf] bg-[#fffaf2]">
               <button
                 type="button"
-                onClick={() =>
-                  setShowMaterialSummary(
-                    (current) =>
-                      !current
-                  )
-                }
+                onClick={() => setShowMaterialSummary((current) => !current)}
                 className="flex w-full cursor-pointer items-center justify-between px-5 py-4 text-left"
               >
                 <div>
@@ -852,83 +704,50 @@ const upiUrl = useMemo(() => {
                   </div>
 
                   <div className="mt-1 text-xl font-bold text-[#35291f]">
-                    {formatINR(
-                      materialTotal
-                    )}
+                    {formatINR(materialTotal)}
                   </div>
                 </div>
 
                 {showMaterialSummary ? (
-                  <ChevronUp
-                    size={18}
-                  />
+                  <ChevronUp size={18} />
                 ) : (
-                  <ChevronDown
-                    size={18}
-                  />
+                  <ChevronDown size={18} />
                 )}
               </button>
 
               {showMaterialSummary && (
                 <div className="border-t border-[#eadfcf] px-5 py-4">
                   <div className="space-y-2">
-                    {(
-                      CONFIG.constructionMaterials ||
-                      []
-                    )
+                    {(CONFIG.constructionMaterials || [])
                       .filter(
                         (material) =>
-                          Number(
-                            materialQuantities[
-                              material.id
-                            ] || 0
-                          ) > 0
+                          Number(materialQuantities[material.id] || 0) > 0,
                       )
-                      .map(
-                        (material) => {
-                          const quantity =
-                            Number(
-                              materialQuantities[
-                                material.id
-                              ] || 0
-                            );
+                      .map((material) => {
+                        const quantity = Number(
+                          materialQuantities[material.id] || 0,
+                        );
 
-                          const materialName =
-                            material.name?.[
-                              language
-                            ] ||
-                            material.name;
+                        const materialName =
+                          material.name?.[language] || material.name;
 
-                          return (
-                            <div
-                              key={
-                                material.id
-                              }
-                              className="flex items-center justify-between text-sm"
-                            >
-                              <span className="text-[#705e50]">
-                                {
-                                  quantity
-                                }{" "}
-                                ×{" "}
-                                {
-                                  materialName
-                                }
-                              </span>
+                        return (
+                          <div
+                            key={material.id}
+                            className="flex items-center justify-between text-sm"
+                          >
+                            <span className="text-[#705e50]">
+                              {quantity} × {materialName}
+                            </span>
 
-                              <span className="font-bold text-[#35291f]">
-                                {formatINR(
-                                  quantity *
-                                    Number(
-                                      material.price ||
-                                        0
-                                    )
-                                )}
-                              </span>
-                            </div>
-                          );
-                        }
-                      )}
+                            <span className="font-bold text-[#35291f]">
+                              {formatINR(
+                                quantity * Number(material.price || 0),
+                              )}
+                            </span>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               )}
@@ -937,17 +756,13 @@ const upiUrl = useMemo(() => {
 
           {/* THRESHOLD */}
 
-          {materialTotal >
-            DONOR_DETAILS_THRESHOLD && (
+          {materialTotal > DONOR_DETAILS_THRESHOLD && (
             <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
               <div className="flex gap-3">
                 <Mail className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
 
                 <p className="text-sm leading-6 text-amber-900">
-                  {
-                    t.donate
-                      .donorThresholdMaterial
-                  }
+                  {t.donate.donorThresholdMaterial}
                 </p>
               </div>
             </div>
@@ -963,35 +778,24 @@ const upiUrl = useMemo(() => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#f4c28b]">
-              {donationType ===
-              "money"
-                ? t.donate
-                    .yourDonation
-                : t.donate
-                    .materialSevaTotal}
+              {donationType === "money"
+                ? t.donate.yourDonation
+                : t.donate.materialSevaTotal}
             </div>
 
             <div className="mt-1 font-serif text-3xl font-semibold">
-              {formatINR(
-                finalAmount || 0
-              )}
+              {formatINR(finalAmount || 0)}
             </div>
 
             {requiresDonorDetails && (
               <div className="mt-3 inline-flex rounded-full bg-[#7e300d] px-3 py-1 text-xs font-bold">
-                {
-                  t.donate
-                    .donorThreshold
-                }
+                {t.donate.donorThreshold}
               </div>
             )}
           </div>
 
           <div className="flex items-center gap-2 text-sm text-[#f9dcc1]">
-            <Heart
-              size={17}
-              className="fill-current text-[#f1a05b]"
-            />
+            <Heart size={17} className="fill-current text-[#f1a05b]" />
 
             {t.donate.everySeva}
           </div>
@@ -1014,10 +818,7 @@ const upiUrl = useMemo(() => {
             </h3>
 
             <p className="mt-2 text-sm leading-6 text-[#705e50]">
-              {
-                t.donate
-                  .donorDetailsDescription
-              }
+              {t.donate.donorDetailsDescription}
             </p>
           </div>
 
@@ -1031,25 +832,14 @@ const upiUrl = useMemo(() => {
               <input
                 type="text"
                 value={donor.name}
-                onChange={(event) =>
-                  updateDonor(
-                    "name",
-                    event.target.value
-                  )
-                }
-                placeholder={
-                  t.donate.fullName
-                }
+                onChange={(event) => updateDonor("name", event.target.value)}
+                placeholder={t.donate.fullName}
                 className="mt-2 w-full rounded-xl border border-[#ddcfbd] bg-white px-4 py-3 outline-none transition focus:border-[#a45416] focus:ring-2 focus:ring-[#a45416]/10"
               />
 
-              {emailStatus ===
-                "name-error" && (
+              {emailStatus === "name-error" && (
                 <p className="mt-1 text-xs font-semibold text-red-600">
-                  {
-                    t.donate
-                      .nameRequired
-                  }
+                  {t.donate.nameRequired}
                 </p>
               )}
             </div>
@@ -1063,23 +853,14 @@ const upiUrl = useMemo(() => {
               <input
                 type="email"
                 value={donor.email}
-                onChange={(event) =>
-                  updateDonor(
-                    "email",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateDonor("email", event.target.value)}
                 placeholder="you@example.com"
                 className="mt-2 w-full rounded-xl border border-[#ddcfbd] bg-white px-4 py-3 outline-none transition focus:border-[#a45416] focus:ring-2 focus:ring-[#a45416]/10"
               />
 
-              {emailStatus ===
-                "email-error" && (
+              {emailStatus === "email-error" && (
                 <p className="mt-1 text-xs font-semibold text-red-600">
-                  {
-                    t.donate
-                      .emailRequired
-                  }
+                  {t.donate.emailRequired}
                 </p>
               )}
             </div>
@@ -1093,17 +874,48 @@ const upiUrl = useMemo(() => {
               <input
                 type="tel"
                 value={donor.phone}
-                onChange={(event) =>
-                  updateDonor(
-                    "phone",
-                    event.target.value
-                  )
-                }
+                onChange={(event) => updateDonor("phone", event.target.value)}
                 placeholder="+91"
                 className="mt-2 w-full rounded-xl border border-[#ddcfbd] bg-white px-4 py-3 outline-none transition focus:border-[#a45416] focus:ring-2 focus:ring-[#a45416]/10"
               />
             </div>
+
+            <div>
+              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-[#806c5c]">
+                <CreditCard size={14} />
+                {t.donate.panNumber}
+              </label>
+
+              <input
+                type="text"
+                value={donor.panNumber}
+                onChange={(event) =>
+                  updateDonor("panNumber", event.target.value)
+                }
+                maxLength={10}
+                placeholder="ABCDE1234F"
+                className="mt-2 w-full rounded-xl border border-[#ddcfbd] bg-white px-4 py-3 uppercase outline-none transition focus:border-[#a45416] focus:ring-2 focus:ring-[#a45416]/10"
+              />
+
+              {emailStatus === "pan-error" && (
+                <p className="mt-1 text-xs font-semibold text-red-600">
+                  {t.donate.panNumberInvalid}
+                </p>
+              )}
+            </div>
           </div>
+
+          <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm leading-6 text-[#5f5147]">
+            <input
+              type="checkbox"
+              checked={donor.taxRebate}
+              onChange={(event) =>
+                updateDonor("taxRebate", event.target.checked)
+              }
+              className="mt-1 h-4 w-4 shrink-0 accent-[#a45416]"
+            />
+            <span>{t.donate.taxRebateRequest}</span>
+          </label>
         </div>
       )}
 
@@ -1117,59 +929,44 @@ const upiUrl = useMemo(() => {
         </div>
 
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
-          {paymentOptions.map(
-            (option) => {
-              const Icon =
-                option.icon;
+          {paymentOptions.map((option) => {
+            const Icon = option.icon;
 
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() =>
-                    setPaymentMethod(
-                      option.id
-                    )
-                  }
-                  className={`cursor-pointer rounded-2xl border p-4 text-left transition ${
-                    paymentMethod ===
-                    option.id
-                      ? "border-[#a45416] bg-[#fff1da] shadow-sm"
-                      : "border-[#e6d8c7] bg-white hover:border-[#b9743e]"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`rounded-xl p-2 ${
-                        paymentMethod ===
-                        option.id
-                          ? "bg-white text-[#9c3b0d]"
-                          : "bg-[#f7efe5] text-[#725c4a]"
-                      }`}
-                    >
-                      <Icon
-                        size={18}
-                      />
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => setPaymentMethod(option.id)}
+                className={`cursor-pointer rounded-2xl border p-4 text-left transition ${
+                  paymentMethod === option.id
+                    ? "border-[#a45416] bg-[#fff1da] shadow-sm"
+                    : "border-[#e6d8c7] bg-white hover:border-[#b9743e]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`rounded-xl p-2 ${
+                      paymentMethod === option.id
+                        ? "bg-white text-[#9c3b0d]"
+                        : "bg-[#f7efe5] text-[#725c4a]"
+                    }`}
+                  >
+                    <Icon size={18} />
+                  </div>
+
+                  <div>
+                    <div className="text-sm font-bold text-[#35291f]">
+                      {option.title}
                     </div>
 
-                    <div>
-                      <div className="text-sm font-bold text-[#35291f]">
-                        {
-                          option.title
-                        }
-                      </div>
-
-                      <div className="mt-0.5 text-xs text-[#806c5c]">
-                        {
-                          option.subtitle
-                        }
-                      </div>
+                    <div className="mt-0.5 text-xs text-[#806c5c]">
+                      {option.subtitle}
                     </div>
                   </div>
-                </button>
-              );
-            }
-          )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -1178,37 +975,28 @@ const upiUrl = useMemo(() => {
       ====================================================== */}
 
       <div className="mt-5 rounded-[1.6rem] border border-[#eadfcf] bg-[#fffaf2] p-6">
-
         {/* ===================================================
             UPI
         ==================================================== */}
 
-        {paymentMethod ===
-          "upi" && (
+        {paymentMethod === "upi" && (
           <div>
             <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#a06a35]">
               {t.donate.directUpi}
             </div>
 
             <h3 className="mt-2 font-serif text-3xl font-semibold text-[#35291f]">
-              {t.donate.payViaUpi}{" "}
-              {formatINR(
-                finalAmount || 0
-              )}
+              {t.donate.payViaUpi} {formatINR(finalAmount || 0)}
             </h3>
 
             <p className="mt-2 text-sm leading-7 text-[#705e50]">
-              {isMobile
-                ? t.donate.mobileUpi
-                : t.donate.desktopUpi}
+              {isMobile ? t.donate.mobileUpi : t.donate.desktopUpi}
             </p>
 
             {/* UPI ID */}
 
             <div className="mt-4 rounded-xl bg-white px-4 py-3">
-              <div className="text-xs text-[#8c7b6a]">
-                {t.donate.templeUpi}
-              </div>
+              <div className="text-xs text-[#8c7b6a]">{t.donate.templeUpi}</div>
 
               <div className="mt-1 flex items-center justify-between gap-3">
                 <span className="break-all font-mono text-sm font-bold text-[#35291f]">
@@ -1222,10 +1010,7 @@ const upiUrl = useMemo(() => {
                 >
                   {copied ? (
                     <>
-                      <Check
-                        size={14}
-                        className="text-green-600"
-                      />
+                      <Check size={14} className="text-green-600" />
 
                       {t.buttons.copied}
                     </>
@@ -1247,23 +1032,14 @@ const upiUrl = useMemo(() => {
                 <button
                   type="button"
                   onClick={openUpiApp}
-                  disabled={
-                    finalAmount <= 0 ||
-                    emailStatus ===
-                      "sending"
-                  }
+                  disabled={finalAmount <= 0 || emailStatus === "sending"}
                   className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#9c3b0d] px-5 py-4 text-sm font-bold text-white transition hover:bg-[#7e300d] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {emailStatus ===
-                  "sending"
-                    ? t.donate
-                        .preparing
-                    : t.buttons
-                        .openUpi}
+                  {emailStatus === "sending"
+                    ? t.donate.preparing
+                    : t.buttons.openUpi}
 
-                  <Smartphone
-                    size={17}
-                  />
+                  <Smartphone size={17} />
                 </button>
 
                 <p className="mt-3 text-center text-xs leading-5 text-[#806c5c]">
@@ -1278,16 +1054,10 @@ const upiUrl = useMemo(() => {
               <div className="mt-5">
                 <button
                   type="button"
-                  onClick={() =>
-                    setPaymentMethod(
-                      "qr"
-                    )
-                  }
+                  onClick={() => setPaymentMethod("qr")}
                   className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#9c3b0d] px-5 py-4 text-sm font-bold text-white transition hover:bg-[#7e300d]"
                 >
-                  <QrCode
-                    size={17}
-                  />
+                  <QrCode size={17} />
 
                   {language === "hi"
                     ? "QR कोड से भुगतान करें"
@@ -1304,28 +1074,16 @@ const upiUrl = useMemo(() => {
 
             {/* EMAIL STATUS */}
 
-            {emailStatus ===
-              "error" && (
+            {emailStatus === "error" && (
               <p className="mt-3 text-sm font-semibold text-red-600">
-                {
-                  t.donate
-                    .emailFailed
-                }
+                {t.donate.emailFailed}
               </p>
             )}
 
-            {emailStatus ===
-              "sent" && (
+            {emailStatus === "sent" && (
               <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green-700">
-                <Check
-                  size={15}
-                />
-
-                {
-                  t.donate
-                    .emailSent
-                }{" "}
-                {donor.email}
+                <Check size={15} />
+                {t.donate.emailSent} {donor.email}
               </p>
             )}
 
@@ -1337,15 +1095,13 @@ const upiUrl = useMemo(() => {
 
                 <div>
                   <p className="text-sm font-bold text-[#35291f]">
-                    {language ===
-                    "hi"
+                    {language === "hi"
                       ? "UPI ऐप नहीं खुल रहा?"
                       : "UPI app not opening?"}
                   </p>
 
                   <p className="mt-1 text-xs leading-5 text-[#806c5c]">
-                    {language ===
-                    "hi"
+                    {language === "hi"
                       ? "ऊपर QR विकल्प चुनें और अपने पसंदीदा UPI ऐप से QR स्कैन करें।"
                       : "Choose the QR option above and scan it using your preferred UPI app."}
                   </p>
@@ -1359,8 +1115,7 @@ const upiUrl = useMemo(() => {
             QR
         ==================================================== */}
 
-        {paymentMethod ===
-          "qr" && (
+        {paymentMethod === "qr" && (
           <div>
             <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#a06a35]">
               {t.donate.qr}
@@ -1368,40 +1123,25 @@ const upiUrl = useMemo(() => {
 
             <div className="mt-5 grid gap-7 md:grid-cols-[auto_1fr] md:items-center">
               <div className="mx-auto rounded-2xl bg-white p-4 shadow-sm">
-                <QRCodeCanvas
-                  value={upiUrl}
-                  size={220}
-                  includeMargin
-                />
+                <QRCodeCanvas value={upiUrl} size={220} includeMargin />
               </div>
 
               <div>
                 <h3 className="font-serif text-3xl font-semibold text-[#35291f]">
-                  {language ===
-                  "hi"
-                    ? "स्कैन करके भुगतान करें"
-                    : "Scan to Pay"}
+                  {language === "hi" ? "स्कैन करके भुगतान करें" : "Scan to Pay"}
                 </h3>
 
                 <div className="mt-2 text-2xl font-bold text-[#9c3b0d]">
-                  {formatINR(
-                    finalAmount || 0
-                  )}
+                  {formatINR(finalAmount || 0)}
                 </div>
 
                 <p className="mt-2 text-sm leading-7 text-[#705e50]">
-                  {
-                    t.donate
-                      .qrDescriptionFull
-                  }
+                  {t.donate.qrDescriptionFull}
                 </p>
 
                 <div className="mt-4 rounded-xl bg-white px-4 py-3">
                   <div className="text-xs text-[#8c7b6a]">
-                    {
-                      t.donate
-                        .templeUpi
-                    }
+                    {t.donate.templeUpi}
                   </div>
 
                   <div className="mt-1 font-mono text-sm font-bold text-[#35291f]">
@@ -1412,50 +1152,28 @@ const upiUrl = useMemo(() => {
                 {requiresDonorDetails && (
                   <button
                     type="button"
-                    onClick={
-                      sendDonationEmail
-                    }
-                    disabled={
-                      emailStatus ===
-                      "sending"
-                    }
+                    onClick={sendDonationEmail}
+                    disabled={emailStatus === "sending"}
                     className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-full bg-[#9c3b0d] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#7e300d] disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {emailStatus ===
-                    "sending"
-                      ? t.donate
-                          .sending
-                      : emailStatus ===
-                        "sent"
-                      ? language ===
-                        "hi"
-                        ? "ईमेल भेज दिया गया"
-                        : "Email Sent"
-                      : language ===
-                        "hi"
-                      ? "दाता विवरण भेजें"
-                      : "Send Donation Details"}
+                    {emailStatus === "sending"
+                      ? t.donate.sending
+                      : emailStatus === "sent"
+                        ? language === "hi"
+                          ? "ईमेल भेज दिया गया"
+                          : "Email Sent"
+                        : language === "hi"
+                          ? "दाता विवरण भेजें"
+                          : "Send Donation Details"}
 
-                    <Mail
-                      size={15}
-                    />
+                    <Mail size={15} />
                   </button>
                 )}
 
-                {emailStatus ===
-                  "sent" && (
+                {emailStatus === "sent" && (
                   <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green-700">
-                    <Check
-                      size={15}
-                    />
-
-                    {
-                      t.donate
-                        .emailSent
-                    }{" "}
-                    {
-                      donor.email
-                    }
+                    <Check size={15} />
+                    {t.donate.emailSent} {donor.email}
                   </p>
                 )}
               </div>
@@ -1467,91 +1185,53 @@ const upiUrl = useMemo(() => {
             STRIPE
         ==================================================== */}
 
-        {paymentMethod ===
-          "stripe" && (
+        {paymentMethod === "stripe" && (
           <div>
             <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#a06a35]">
               {t.donate.stripe}
             </div>
 
             <h3 className="mt-2 font-serif text-3xl font-semibold text-[#35291f]">
-              {language ===
-              "hi"
-                ? "Stripe से भुगतान करें"
-                : "Pay with Stripe"}
+              {language === "hi" ? "Stripe से भुगतान करें" : "Pay with Stripe"}
             </h3>
 
             <div className="mt-2 text-2xl font-bold text-[#9c3b0d]">
-              {formatINR(
-                finalAmount || 0
-              )}
+              {formatINR(finalAmount || 0)}
             </div>
 
             <p className="mt-2 text-sm leading-7 text-[#705e50]">
-              {
-                t.donate
-                  .stripeDescriptionFull
-              }
+              {t.donate.stripeDescriptionFull}
             </p>
 
             {canStripe ? (
               <button
                 type="button"
-                onClick={
-                  openStripe
-                }
-                disabled={
-                  finalAmount <=
-                    0 ||
-                  emailStatus ===
-                    "sending"
-                }
+                onClick={openStripe}
+                disabled={finalAmount <= 0 || emailStatus === "sending"}
                 className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-full bg-[#9c3b0d] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#7e300d] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {emailStatus ===
-                "sending"
-                  ? t.donate
-                      .preparing
-                  : t.buttons
-                      .continueStripe}
+                {emailStatus === "sending"
+                  ? t.donate.preparing
+                  : t.buttons.continueStripe}
 
-                <ArrowRight
-                  size={15}
-                />
+                <ArrowRight size={15} />
               </button>
             ) : (
               <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                {
-                  t.donate
-                    .stripeNotConfigured
-                }
+                {t.donate.stripeNotConfigured}
               </div>
             )}
 
-            {emailStatus ===
-              "error" && (
+            {emailStatus === "error" && (
               <p className="mt-3 text-sm font-semibold text-red-600">
-                {
-                  t.donate
-                    .emailFailed
-                }
+                {t.donate.emailFailed}
               </p>
             )}
 
-            {emailStatus ===
-              "sent" && (
+            {emailStatus === "sent" && (
               <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-green-700">
-                <Check
-                  size={15}
-                />
-
-                {
-                  t.donate
-                    .emailSent
-                }{" "}
-                {
-                  donor.email
-                }
+                <Check size={15} />
+                {t.donate.emailSent} {donor.email}
               </p>
             )}
           </div>

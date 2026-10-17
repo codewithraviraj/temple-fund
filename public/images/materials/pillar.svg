@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" fill="none">
+  <defs>
+    <linearGradient id="sky" x1="400" y1="0" x2="400" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5E9D6"/>
+      <stop offset="1" stop-color="#D7B895"/>
+    </linearGradient>
+    <linearGradient id="stone" x1="400" y1="130" x2="400" y2="460" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F9F1E4"/>
+      <stop offset="1" stop-color="#B98758"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h800v520H0z"/>
+  <circle cx="650" cy="102" r="47" fill="#F8D99E" opacity=".8"/>
+  <path d="M0 390c126-36 232-36 365 0s270 36 435-5v135H0V390Z" fill="#C9A47B"/>
+  <path d="M260 423h280l-23-31H283l-23 31Z" fill="#81502F"/>
+  <path d="M277 392h246l-21-25H298l-21 25Z" fill="#D7B28A"/>
+  <path d="M317 361V194h166v167H317Z" fill="url(#stone)" stroke="#94663F" stroke-width="5"/>
+  <path d="M299 194h202l-17-24H316l-17 24Z" fill="#A87549"/>
+  <path d="M305 170h190l-19-26H324l-19 26Z" fill="#E7CEAA" stroke="#94663F" stroke-width="4"/>
+  <path d="M324 144c0-18 14-32 32-32h88c18 0 32 14 32 32v7H324v-7Z" fill="#B98250" stroke="#94663F" stroke-width="4"/>
+  <path d="M342 224v118M458 224v118" stroke="#A87549" stroke-width="5" opacity=".65"/>
+  <path d="M339 367h122l-14 25H353l-14-25Z" fill="#D8B48B" stroke="#94663F" stroke-width="4"/>
+  <path d="M303 423h194v21H303z" fill="#99683F"/>
+  <path d="M282 444h236v20H282z" fill="#E6C8A0" stroke="#94663F" stroke-width="4"/>
+  <path d="M395 112V82m10 30V82" stroke="#94663F" stroke-width="4" stroke-linecap="round"/>
+</svg>

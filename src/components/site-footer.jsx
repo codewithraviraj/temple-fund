@@ -10,7 +10,7 @@ export default function SiteFooter({ onDonate }) {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1.3fr_.7fr_.7fr] lg:px-8">
         <div>
           <div className="font-serif text-2xl font-semibold">
-            {CONFIG.shortName}
+            {CONFIG.templeName}
           </div>
           <p className="mt-3 max-w-md text-sm leading-7 text-amber-50/65">
             A digital front door for temple seva — designed to make giving
@@ -44,7 +44,7 @@ export default function SiteFooter({ onDonate }) {
             </a>
             <a
               className="grid h-10 w-10 place-items-center rounded-full border border-white/10"
-              href={`mailto:${CONFIG.email}`}
+              href={`mailto:${CONFIG.contactEmail}`}
               aria-label="Email"
             >
               <MessageCircle size={17} />
