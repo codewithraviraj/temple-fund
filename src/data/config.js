@@ -6,7 +6,7 @@ export const CONFIG = {
   phone: "+91 90000 12345",
   contactEmail: "maakalibalajeebabosatrust.official@gmail.com",
 
-  upiId: "temple.seva@upi",
+  upiId: "SBIBHIM.INSTANT58562309759192792@sbipay",
 
   accountName: "Sri Sri 108 Sarwjanik Maa Kali Balajee Babosa Mandir Trust",
 
