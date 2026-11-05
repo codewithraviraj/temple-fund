@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CONFIG, formatINR } from "../data/config";
+import DonorWall from "../components/donor-wall";
 import {
   CampaignCallout,
   ExploreLink,
@@ -113,6 +114,9 @@ export default function Home({ onDonate }) {
           <Stat value="100%" label="Donation intent shown before giving" />
         </div>
       </section>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <DonorWall />
+      </div>
       <section className="mx-auto max-w-7xl px-4 py-18 sm:px-6 lg:px-8">
         <SectionIntro
           eyebrow="What your seva sustains"
