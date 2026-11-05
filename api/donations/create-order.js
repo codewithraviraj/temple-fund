@@ -23,12 +23,6 @@ export default async function handler(request, response) {
       "RAZORPAY_KEY_SECRET",
       "SUPABASE_URL",
       "SUPABASE_SERVICE_ROLE_KEY",
-      "EMAILJS_SERVICE_ID",
-      "EMAILJS_PUBLIC_KEY",
-      "EMAILJS_PRIVATE_KEY",
-      "EMAILJS_DONOR_TEMPLATE_ID",
-      "EMAILJS_ADMIN_TEMPLATE_ID",
-      "TEMPLE_NOTIFICATION_EMAIL",
     ]) {
       getEnv(name);
     }
