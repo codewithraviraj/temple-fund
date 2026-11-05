@@ -194,9 +194,9 @@ export function TrustNotice() {
     <div className="flex items-start gap-3 rounded-2xl border border-[#eadfcf] bg-white p-4 text-xs leading-6 text-[#766456]">
       <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#8f2d0c]" />
       <span>
-        This frontend records no card details and does not claim payment
-        success. Final confirmation and receipts come from your payment
-        provider.
+        Razorpay verifies captured donations server-side. Email acknowledgements
+        follow payment confirmation; 80G receipts are unavailable until the
+        trust receives applicable approval.
       </span>
     </div>
   );

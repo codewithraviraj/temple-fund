@@ -22,28 +22,6 @@ export const CONFIG = {
 
   suggestedAmounts: [501, 1001, 2501, 5001, 11001],
 
-  stripePaymentLinks: {
-    // Replace these with Stripe Payment Links created in Stripe Dashboard.
-    default: "https://buy.stripe.com/REPLACE_WITH_YOUR_PAYMENT_LINK",
-    501: "https://buy.stripe.com/REPLACE_WITH_501_LINK",
-    1001: "https://buy.stripe.com/REPLACE_WITH_1001_LINK",
-    2501: "https://buy.stripe.com/REPLACE_WITH_2501_LINK",
-    5001: "https://buy.stripe.com/REPLACE_WITH_5001_LINK",
-    11001: "https://buy.stripe.com/REPLACE_WITH_11001_LINK",
-  },
-
-  emailjs: {
-    enabled: true,
-
-    serviceId: "YOUR_EMAILJS_SERVICE_ID",
-
-    templateId: "YOUR_EMAILJS_TEMPLATE_ID",
-
-    publicKey: "YOUR_EMAILJS_PUBLIC_KEY",
-
-    threshold: 2000,
-  },
-
   // ------------------------------------------
   // TEMPLE CONSTRUCTION MATERIALS
   // ------------------------------------------
